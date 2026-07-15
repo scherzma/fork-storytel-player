@@ -17,9 +17,20 @@ export interface ApiResponse {
 export interface WindowConfig {
   width: number;
   height: number;
+  x?: number;
+  y?: number;
+  minWidth: number;
+  minHeight: number;
   resizable: boolean;
   maximizable: boolean;
   alwaysOnTop: boolean;
+}
+
+export interface WindowBounds {
+  width: number;
+  height: number;
+  x?: number;
+  y?: number;
 }
 
 export interface AppContext {

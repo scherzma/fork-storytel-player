@@ -2,10 +2,13 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import api from '../utils/api';
+import storage from '../utils/storage';
 import BookCard from './BookCard';
 import ErrorState from './ErrorState';
 import DashboardHeader from './DashboardHeader';
 import {BookShelfEntity, BookShelfResponse} from '../interfaces/books';
+
+type ViewMode = 'grid' | 'list';
 
 interface DashboardProps {
     onLogout: () => void;
@@ -21,11 +24,15 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
     const [error, setError] = useState('');
     const [filterStatus, setFilterStatus] = useState(-1);
     const [searchQuery, setSearchQuery] = useState('');
+    const [viewMode, setViewMode] = useState<ViewMode>('grid');
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         window.scrollTo({top: 0, left: 0});
         void loadBookshelf();
+        void storage.get('libraryViewMode').then(saved => {
+            if (saved === 'list' || saved === 'grid') setViewMode(saved);
+        });
         const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
                 event.preventDefault();
@@ -75,6 +82,11 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
 
     const handleBookSelect = (book: BookShelfEntity) => {
         navigate(`/book/${book.abook?.id}`, {state: {book}});
+    };
+
+    const changeViewMode = (mode: ViewMode) => {
+        setViewMode(mode);
+        void storage.set('libraryViewMode', mode);
     };
 
     const filters = [
@@ -171,6 +183,36 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
                                             </button>
                                         ))}
                                     </div>
+                                    <div className="flex shrink-0 rounded-xl bg-white/[0.045] p-1" role="group" aria-label={t('dashboard.viewLabel')}>
+                                        <button
+                                            type="button"
+                                            onClick={() => changeViewMode('grid')}
+                                            aria-label={t('dashboard.viewGrid')}
+                                            title={t('dashboard.viewGrid')}
+                                            aria-pressed={viewMode === 'grid'}
+                                            className={`flex h-8 w-9 items-center justify-center rounded-lg transition focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                                                viewMode === 'grid' ? 'bg-white text-[#15161a] shadow-md' : 'text-white/55 hover:bg-white/[0.08] hover:text-white'
+                                            }`}
+                                        >
+                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 5.5A1.5 1.5 0 0 1 5.5 4h3A1.5 1.5 0 0 1 10 5.5v3A1.5 1.5 0 0 1 8.5 10h-3A1.5 1.5 0 0 1 4 8.5v-3Zm10 0A1.5 1.5 0 0 1 15.5 4h3A1.5 1.5 0 0 1 20 5.5v3A1.5 1.5 0 0 1 18.5 10h-3A1.5 1.5 0 0 1 14 8.5v-3Zm-10 10A1.5 1.5 0 0 1 5.5 14h3A1.5 1.5 0 0 1 10 15.5v3A1.5 1.5 0 0 1 8.5 20h-3A1.5 1.5 0 0 1 4 18.5v-3Zm10 0a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a1.5 1.5 0 0 1-1.5-1.5v-3Z"/>
+                                            </svg>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => changeViewMode('list')}
+                                            aria-label={t('dashboard.viewList')}
+                                            title={t('dashboard.viewList')}
+                                            aria-pressed={viewMode === 'list'}
+                                            className={`flex h-8 w-9 items-center justify-center rounded-lg transition focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                                                viewMode === 'list' ? 'bg-white text-[#15161a] shadow-md' : 'text-white/55 hover:bg-white/[0.08] hover:text-white'
+                                            }`}
+                                        >
+                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h.01M8 6h12M4 12h.01M8 12h12M4 18h.01M8 18h12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </section>
 
@@ -181,6 +223,12 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
                                     <button type="button" onClick={() => { setSearchQuery(''); setFilterStatus(-1); }} className="rounded-xl border border-white/15 px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/5 hover:text-white">
                                         {t('dashboard.clearFilters')}
                                     </button>
+                                </div>
+                            ) : viewMode === 'list' ? (
+                                <div className="flex flex-col gap-3">
+                                    {filteredBooks.map(book => (
+                                        <BookCard key={`${book.book.consumableId}-${book.abook.id}`} book={book} onBookSelect={handleBookSelect} layout="list" />
+                                    ))}
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

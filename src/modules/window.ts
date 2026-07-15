@@ -1,8 +1,13 @@
-import {BrowserWindow, Menu, app, shell} from 'electron';
+import {BrowserWindow, Menu, app, screen, shell} from 'electron';
 import {spawn, ChildProcess} from 'child_process';
 import * as path from 'path';
-import {WindowConfig} from '../types';
+import {WindowBounds, WindowConfig} from '../types';
 import {storeManager} from './store';
+
+const DEFAULT_WIDTH = 1200;
+const DEFAULT_HEIGHT = 800;
+const MIN_WIDTH = 420;
+const MIN_HEIGHT = 600;
 
 export class WindowManager {
     private mainWindow: BrowserWindow | null = null;
@@ -18,12 +23,17 @@ export class WindowManager {
     create(): BrowserWindow {
         // Get alwaysOnTop setting from store (default: false)
         const alwaysOnTop = storeManager.get<boolean>('settings.alwaysOnTop') ?? false;
+        const savedBounds = this.getSavedBounds();
 
         const windowConfig: WindowConfig = {
-            width: 480,
-            height: 800,
-            resizable: this.isDebug,
-            maximizable: this.isDebug,
+            width: savedBounds?.width ?? DEFAULT_WIDTH,
+            height: savedBounds?.height ?? DEFAULT_HEIGHT,
+            x: savedBounds?.x,
+            y: savedBounds?.y,
+            minWidth: MIN_WIDTH,
+            minHeight: MIN_HEIGHT,
+            resizable: true,
+            maximizable: true,
             alwaysOnTop
         };
 
@@ -58,6 +68,37 @@ export class WindowManager {
         return this.mainWindow;
     }
 
+    // Restore the last window size/position, but only when it still fits on a
+    // currently connected display (monitors may have been unplugged since).
+    private getSavedBounds(): WindowBounds | null {
+        const bounds = storeManager.get<WindowBounds>('settings.windowBounds');
+        if (!bounds || typeof bounds.width !== 'number' || typeof bounds.height !== 'number') {
+            return null;
+        }
+
+        const width = Math.max(MIN_WIDTH, Math.floor(bounds.width));
+        const height = Math.max(MIN_HEIGHT, Math.floor(bounds.height));
+        if (typeof bounds.x !== 'number' || typeof bounds.y !== 'number') {
+            return {width, height};
+        }
+
+        const visible = screen.getAllDisplays().some(({workArea}) =>
+            bounds.x! < workArea.x + workArea.width &&
+            bounds.x! + width > workArea.x &&
+            bounds.y! < workArea.y + workArea.height &&
+            bounds.y! + height > workArea.y
+        );
+        return visible
+            ? {width, height, x: Math.floor(bounds.x), y: Math.floor(bounds.y)}
+            : {width, height};
+    }
+
+    private saveBounds(): void {
+        if (!this.mainWindow || this.mainWindow.isMinimized() || this.mainWindow.isMaximized()) return;
+        const {width, height, x, y} = this.mainWindow.getBounds();
+        storeManager.set('settings.windowBounds', {width, height, x, y});
+    }
+
     private setupEventHandlers(): void {
         if (!this.mainWindow) return;
 
@@ -65,7 +106,16 @@ export class WindowManager {
             this.mainWindow?.show();
         });
 
+        let boundsSaveTimer: NodeJS.Timeout | null = null;
+        const scheduleBoundsSave = () => {
+            if (boundsSaveTimer) clearTimeout(boundsSaveTimer);
+            boundsSaveTimer = setTimeout(() => this.saveBounds(), 500);
+        };
+        this.mainWindow.on('resize', scheduleBoundsSave);
+        this.mainWindow.on('move', scheduleBoundsSave);
+
         this.mainWindow.on('close', (event) => {
+            this.saveBounds();
             // @ts-ignore
             if (!app.isQuitting) {
                 event.preventDefault();

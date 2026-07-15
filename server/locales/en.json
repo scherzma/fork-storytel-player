@@ -23,6 +23,12 @@
     "findBooks": "Find new books",
     "browseCatalog": "Browse the catalog",
     "filterLabel": "Filter library",
+
+    "viewLabel": "Library view",
+
+    "viewGrid": "Grid view",
+
+    "viewList": "List view",
     "noMatches": "Nothing matches these filters",
     "noMatchesHint": "Try another search or show all of your books.",
     "clearFilters": "Clear filters",

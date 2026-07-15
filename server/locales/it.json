@@ -23,6 +23,12 @@
     "findBooks": "Trova nuovi libri",
     "browseCatalog": "Sfoglia il catalogo",
     "filterLabel": "Filtra la libreria",
+
+    "viewLabel": "Vista della libreria",
+
+    "viewGrid": "Vista a griglia",
+
+    "viewList": "Vista a elenco",
     "noMatches": "Nessun risultato con questi filtri",
     "noMatchesHint": "Prova un'altra ricerca o mostra tutti i libri.",
     "clearFilters": "Azzera filtri",

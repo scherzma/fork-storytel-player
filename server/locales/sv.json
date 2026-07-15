@@ -18,6 +18,12 @@
     "findBooks": "Hitta nya böcker",
     "browseCatalog": "Bläddra i katalogen",
     "filterLabel": "Filtrera biblioteket",
+
+    "viewLabel": "Biblioteksvy",
+
+    "viewGrid": "Rutnätsvy",
+
+    "viewList": "Listvy",
     "noMatches": "Inget matchar filtren",
     "noMatchesHint": "Prova en annan sökning eller visa alla böcker.",
     "clearFilters": "Rensa filter",

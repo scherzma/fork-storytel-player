@@ -18,6 +18,12 @@
     "findBooks": "Buscar libros nuevos",
     "browseCatalog": "Explorar el catálogo",
     "filterLabel": "Filtrar biblioteca",
+
+    "viewLabel": "Vista de la biblioteca",
+
+    "viewGrid": "Vista de cuadrícula",
+
+    "viewList": "Vista de lista",
     "noMatches": "Nada coincide con estos filtros",
     "noMatchesHint": "Prueba otra búsqueda o muestra todos tus libros.",
     "clearFilters": "Borrar filtros",
