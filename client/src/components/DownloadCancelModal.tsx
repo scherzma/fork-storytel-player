@@ -23,18 +23,18 @@ const DownloadCancelModal: React.FC<DownloadCancelModalProps> = ({isOpen, isDown
     return (
         <Modal isOpen={isOpen} onClose={onCancel} title={title}>
             <div className="flex flex-col gap-2">
-                <p className="text-gray-300">{message}</p>
-                <p className="text-gray-400 text-sm mb-4">{warning}</p>
+                <p className="text-white/70">{message}</p>
+                <p className="text-white/50 text-sm mb-4">{warning}</p>
                 <div className="flex gap-3 mt-2">
                     <button
                         onClick={onCancel}
-                        className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
+                        className="flex-1 px-4 py-2 border border-white/10 bg-white/[0.045] text-white rounded-xl hover:bg-white/10 transition-colors"
                     >
                         {cancelButton}
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-500 transition-colors"
                     >
                         {confirmButton}
                     </button>

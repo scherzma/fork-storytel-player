@@ -116,24 +116,24 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
         {/* Appearance Section */}
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase mb-3">
+          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
             {t('settings.appearance')}
           </h3>
-          <div className="border-t border-gray-700 mb-3"></div>
-          <div className="bg-gray-800 rounded-md p-4 space-y-4">
+          <div className="border-t border-white/10 mb-3"></div>
+          <div className="bg-white/[0.045] rounded-lg p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="text-white font-medium mb-1">
                   {t('settings.alwaysOnTop')}
                 </div>
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-white/50">
                   {t('settings.alwaysOnTopDescription')}
                 </div>
               </div>
               <button
                 onClick={handleAlwaysOnTopToggle}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                  alwaysOnTop ? 'bg-orange-600' : 'bg-gray-600'
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#17191e] ${
+                  alwaysOnTop ? 'bg-orange-500' : 'bg-white/15'
                 }`}
               >
                 <span
@@ -144,14 +144,14 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
               </button>
             </div>
             
-            <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="text-white font-medium">
                 {t('settings.language', 'Language')}
               </div>
               <select
                 value={appLanguage}
                 onChange={handleLanguageChange}
-                className="bg-gray-900 text-white border border-gray-700 rounded px-3 py-1 outline-none focus:border-orange-500"
+                className="border border-white/10 bg-black/25 text-white rounded-lg px-3 py-1.5 outline-none focus:border-orange-400"
               >
                 <option value="auto">{t('settings.languageAuto', 'Auto')}</option>
                 <option value="en">English</option>
@@ -167,14 +167,14 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
         {/* Community Section */}
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase mb-3">
+          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
             {t('settings.community')}
           </h3>
-          <div className="border-t border-gray-700 mb-3"></div>
+          <div className="border-t border-white/10 mb-3"></div>
           <div className="space-y-2">
             <button
               onClick={handleGithubClick}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-md transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.045] hover:bg-white/10 text-white rounded-lg transition-colors"
             >
               <span>{t('settings.githubRepo')}</span>
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +184,7 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
             <button
               onClick={handleDiscordClick}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-md transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.045] hover:bg-white/10 text-white rounded-lg transition-colors"
             >
               <span>{t('settings.discordCommunity')}</span>
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,14 +196,14 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
         {/* Developer Section */}
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase mb-3">
+          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
             {t('settings.developer', 'Developer')}
           </h3>
-          <div className="border-t border-gray-700 mb-3"></div>
+          <div className="border-t border-white/10 mb-3"></div>
           <div className="space-y-2">
             <button
               onClick={() => setShowLogsModal(true)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-md transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.045] hover:bg-white/10 text-white rounded-lg transition-colors"
             >
               <span>{t('settings.viewLogs', 'View Session Logs')}</span>
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,15 +215,15 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
         {/* Account Section */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-400 uppercase mb-3">
+          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
             {t('settings.account')}
           </h3>
-          <div className="border-t border-gray-700 mb-3"></div>
+          <div className="border-t border-white/10 mb-3"></div>
           
           {/* Account Info */}
-          <div className="bg-gray-800 rounded-md p-4 mb-3">
+          <div className="bg-white/[0.045] rounded-lg p-4 mb-3">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-400 mb-1">{t('settings.email')}</span>
+              <span className="text-sm text-white/50 mb-1">{t('settings.email')}</span>
               <span className="text-white font-medium">
                 {loading ? t('common.loading') : email || '-'}
               </span>
@@ -232,7 +232,7 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
           <button
             onClick={onLogout}
-            className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+            className="w-full px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold transition-colors"
           >
             {t('settings.logout')}
           </button>

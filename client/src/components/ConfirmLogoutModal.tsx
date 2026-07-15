@@ -16,19 +16,19 @@ function ConfirmLogoutModal({ isOpen, onConfirm, onCancel }: ConfirmLogoutModalP
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title={t('logout.confirmTitle')}>
       <div className="flex flex-col">
-        <p className="text-gray-300 mb-6">
+        <p className="text-white/70 mb-6">
           {t('logout.confirmMessage')}
         </p>
         <div className="flex justify-end space-x-3 mt-4">
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
+            className="px-4 py-2 border border-white/10 bg-white/[0.045] hover:bg-white/10 text-white rounded-xl transition-colors"
           >
             {t('logout.cancelButton')}
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+            className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold transition-colors"
           >
             {t('logout.confirmButton')}
           </button>

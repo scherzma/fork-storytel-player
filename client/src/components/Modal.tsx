@@ -10,11 +10,11 @@ export interface ModalProps {
   zIndex?: number;
 }
 
-const Modal: React.FC<ModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
   headerActions,
   maxWidth = 'max-w-md',
   zIndex = 50
@@ -22,33 +22,33 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className={`fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center`}
+    <div
+      className={`fixed inset-0 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm`}
       style={{ zIndex }}
       onClick={onClose}
     >
-      <div 
-        className={`bg-gray-900 rounded-xl p-0 w-full ${maxWidth} mx-4 border border-gray-700 max-h-[90vh] flex flex-col shadow-2xl overflow-hidden`} 
+      <div
+        className={`w-full ${maxWidth} flex max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#17191e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         {(title || onClose || headerActions) && (
-          <div className="px-6 py-4 border-b border-gray-800 bg-gray-900/95 sticky top-0 flex flex-col gap-4 shrink-0">
-            <div className="flex justify-between items-center gap-4">
+          <div className="sticky top-0 flex shrink-0 flex-col gap-4 border-b border-white/[0.07] px-6 py-4">
+            <div className="flex items-center justify-between gap-4">
               {title && (
-                <h2 className="text-xl font-bold text-white flex-1 min-w-0">
+                <h2 className="min-w-0 flex-1 text-lg font-bold tracking-tight text-white">
                   {title}
                 </h2>
               )}
-              <div className="flex gap-2 items-center shrink-0">
+              <div className="flex shrink-0 items-center gap-2">
                 {headerActions}
-                
+
                 {onClose && (
                   <>
-                    {headerActions && <div className="w-px h-6 bg-gray-700 my-auto mx-1"></div>}
-                    <button 
-                      onClick={onClose} 
-                      className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors"
+                    {headerActions && <div className="mx-1 my-auto h-6 w-px bg-white/10"></div>}
+                    <button
+                      onClick={onClose}
+                      className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
                       title="Close"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@ const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+        <div className="custom-scrollbar flex-1 overflow-y-auto p-6">
           {children}
         </div>
       </div>

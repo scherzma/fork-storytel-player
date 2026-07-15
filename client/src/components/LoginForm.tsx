@@ -79,28 +79,32 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <main className="max-w-4xl mx-auto py-6 px-4">
-        <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
-          <div className="max-w-md w-full space-y-8 p-8 bg-gray-900 rounded-lg shadow-lg border border-gray-800">
-            <div>
-                <div className="flex justify-center">
-                    <img src={'assets/icon.png'} alt={"Storytel"} className="w-12 h-12"/>
-                </div>
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+    <div className="relative min-h-screen bg-[#0d0e11] text-white">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -left-40 -top-48 h-[34rem] w-[34rem] rounded-full bg-orange-600/[0.12] blur-3xl" />
+        <div className="absolute bottom-[-12rem] right-[-10rem] h-[30rem] w-[30rem] rounded-full bg-amber-300/[0.05] blur-3xl" />
+      </div>
+      <main className="relative flex min-h-screen items-center justify-center px-5 py-10">
+        <div className="w-full max-w-md">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#1e2129] via-[#17191f] to-[#121317] p-8 shadow-[0_28px_80px_rgba(0,0,0,0.5)] sm:p-10">
+            <div className="mb-8 text-center">
+              <span className="mx-auto mb-6 flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg">
+                <img src={'assets/icon.png'} alt={"Storytel"} className="h-14 w-14" />
+              </span>
+              <h2 className="mb-2 text-3xl font-black tracking-tight">
                 {t('login.title')}
               </h2>
-              <p className="mt-2 text-center text-sm text-gray-400">
+              <p className="text-sm text-white/50">
                 {t('login.subtitle')}
               </p>
             </div>
             {sessionExpired && (
-              <div className="text-amber-400 text-sm text-center bg-amber-900/20 p-2 rounded-md border border-amber-700">
+              <div className="mb-6 rounded-xl border border-amber-300/25 bg-amber-950/40 p-3 text-center text-sm text-amber-200">
                 {t('login.errors.sessionExpired')}
               </div>
             )}
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              <div className="space-y-4">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="space-y-3">
                 <div>
                   <label htmlFor="email" className="sr-only">
                     {t('login.email')}
@@ -113,7 +117,7 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="relative block w-full px-3 py-2 border border-gray-600 placeholder-gray-400 text-white bg-gray-800 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm"
+                    className="block h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-orange-400/70 focus:ring-4 focus:ring-orange-500/10"
                     placeholder={t('login.email')}
                   />
                 </div>
@@ -129,13 +133,13 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="relative block w-full px-3 py-2 pr-10 border border-gray-600 placeholder-gray-400 text-white bg-gray-800 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm"
+                    className="block h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 pr-12 text-sm text-white outline-none placeholder:text-white/35 focus:border-orange-400/70 focus:ring-4 focus:ring-orange-500/10"
                     placeholder={t('login.password')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300"
+                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-white/40 transition hover:text-white/70"
                   >
                     {showPassword ? (
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -152,7 +156,7 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
               </div>
 
               {error && (
-                <div className="text-red-400 text-sm text-center bg-red-900/20 p-2 rounded-md border border-red-800">
+                <div className="rounded-xl border border-red-300/25 bg-red-950/40 p-3 text-center text-sm text-red-200">
                   {error}
                 </div>
               )}
@@ -161,7 +165,7 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 px-4 text-sm font-bold text-white shadow-[0_10px_30px_rgba(249,115,22,0.22)] transition hover:bg-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-500/25 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/35 disabled:shadow-none"
                 >
                   {isLoading ? (
                     <div className="flex items-center">
@@ -178,19 +182,19 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
               </div>
             </form>
             {ssoAvailable && (
-              <div className="space-y-3">
+              <div className="mt-6 space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-gray-700" />
-                  <span className="text-xs uppercase tracking-wider text-gray-500">
+                  <div className="h-px flex-1 bg-white/10" />
+                  <span className="text-xs uppercase tracking-wider text-white/35">
                     {t('login.ssoDivider')}
                   </span>
-                  <div className="flex-1 h-px bg-gray-700" />
+                  <div className="h-px flex-1 bg-white/10" />
                 </div>
                 <button
                   type="button"
                   onClick={() => handleSsoLogin('google')}
                   disabled={isSsoLoading || isLoading}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-600 text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] px-4 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 48 48" aria-hidden="true">
                     <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.5-5.9 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/>
@@ -206,7 +210,7 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
                   type="button"
                   onClick={() => handleSsoLogin('apple')}
                   disabled={isSsoLoading || isLoading}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-600 text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] px-4 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>

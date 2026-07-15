@@ -39,88 +39,96 @@ const BookInfo: React.FC<BookInfoProps> = ({
                                            }) => {
     const {t} = useTranslation();
 
+    const secondaryButton =
+        'flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] px-4 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400';
+
     return (
-        <div className="flex flex-col items-center">
-            <div className="flex flex-col items-center mb-2">
-                <img
-                    src={buildCoverUrl(book.book.largeCover || book.book.largeCoverE)}
-                    alt={book.book.name}
-                    className="w-64 h-64 object-cover rounded-lg shadow-2xl mb-4"
-                />
-                <div className="text-center max-w-full px-4 py-2">
-                    <h2 className="text-lg font-bold text-white mb-0.5 break-words">{book.book.name}</h2>
-                    <p className="text-sm text-gray-300 mb-0 break-words">
-                        {t('bookCard.author')} {book.book.authorsAsString} • {t('bookCard.narrator')} {book.abook.narratorAsString}
-                    </p>
+        <div className="grid w-full gap-9 lg:grid-cols-[minmax(0,18rem)_1fr] lg:items-center lg:gap-14">
+            {/* Cover */}
+            <div className="mx-auto w-full max-w-[16rem] sm:max-w-xs lg:mx-0 lg:max-w-none">
+                <div className="relative">
+                    <div className="absolute -inset-4 rounded-[2rem] bg-orange-500/15 blur-2xl" aria-hidden="true"/>
+                    <img
+                        src={buildCoverUrl(book.book.largeCover || book.book.largeCoverE)}
+                        alt={book.book.name}
+                        className="relative aspect-square w-full rounded-2xl border border-white/10 object-cover shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+                    />
                 </div>
             </div>
 
-            <div className="px-4 py-0 flex justify-between items-start w-full mt-0">
+            {/* Metadata + actions */}
+            <div className="min-w-0 text-center lg:text-left">
+                {book.book.category?.title && (
+                    <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-orange-300">
+                        {book.book.category.title}
+                    </p>
+                )}
+                <h2 className="mb-3 break-words text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-4xl">
+                    {book.book.name}
+                </h2>
+                <p className="mb-7 text-sm text-white/55">
+                    {book.book.authorsAsString} • {book.abook.narratorAsString}
+                </p>
+
                 {currentChapter && (
-                    <div className="text-left flex-1">
-                        <p className="text-base text-white">{currentChapter.title}</p>
-                        <p className="text-sm text-gray-400">
-                            {formatTimeNatural((currentChapter.end - currentTime) / playbackRate)}
+                    <div className="mb-7 rounded-2xl border border-white/10 bg-white/[0.035] px-5 py-4 text-left">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">
+                            {t('chapters.chapter')} {currentChapter.number ?? ''}
                         </p>
+                        <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                            <p className="min-w-0 truncate text-base font-semibold text-white">{currentChapter.title}</p>
+                            <p className="shrink-0 text-sm text-white/50">
+                                {formatTimeNatural((currentChapter.end - currentTime) / playbackRate)}
+                            </p>
+                        </div>
                     </div>
                 )}
-                <div className={`flex items-center space-x-3 ${currentChapter ? 'ml-4' : 'ml-auto'}`}>
+
+                <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
                     {chapters && chapters.length > 0 && (
-                        <button
-                            onClick={onShowChaptersModal}
-                            className="px-2 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
-                        >
-                            <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                                <g>
-                                    <path fill="currentColor"></path>
-                                    <g>
-                                        <path fill="currentColor"
-                                              d="M16.002 22.002h25.997v4H16.002zM16.002 11.995h25.997v4H16.002zM16.002 32.008h25.997v4H16.002zM6 12h4v4H6zM6 22.006h4v4H6zM6 32.013h4v4H6z"></path>
-                                    </g>
-                                </g>
+                        <button onClick={onShowChaptersModal} className={secondaryButton}>
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                                      d="M4 6h.01M4 12h.01M4 18h.01M9 6h11M9 12h11M9 18h11"/>
                             </svg>
+                            {t('player.chapters')}
                         </button>
                     )}
-                    <button
-                        id="bookmark-btn"
-                        onClick={onShowBookmarksModal}
-                        className="px-2 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             className="w-6 h-6">
-                            <path
-                                id="SVGRepo_iconCarrier"
-                                stroke="#464455"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                fill="currentColor"
-                                d="M15.75 5h-7.5C7.56 5 7 5.588 7 6.313V19l5-3.5 5 3.5V6.313C17 5.588 16.44 5 15.75 5"
-                            ></path>
+                    <button id="bookmark-btn" onClick={onShowBookmarksModal} className={secondaryButton}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                                  d="M5 5.75A2.75 2.75 0 0 1 7.75 3h8.5A2.75 2.75 0 0 1 19 5.75V21l-7-4-7 4V5.75Z"/>
                         </svg>
+                        {t('player.bookmarks')}
                     </button>
                     <button
                         id="download-btn"
                         onClick={isDownloading ? onCancelDownload : onDownload}
-                        className={`px-2 py-2 rounded-md transition-colors ${
+                        className={`flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-orange-400 ${
                             isDownloaded
-                                ? 'bg-green-600 hover:bg-green-700'
+                                ? 'border-emerald-300/25 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25'
                                 : isDownloading
-                                    ? 'bg-red-600 hover:bg-red-700'
-                                    : 'bg-gray-800 hover:bg-gray-700'
-                        } text-white`}
+                                    ? 'border-red-300/25 bg-red-500/15 text-red-200 hover:bg-red-500/25'
+                                    : 'border-white/10 bg-white/[0.045] text-white/75 hover:bg-white/10 hover:text-white'
+                        }`}
                     >
                         {isDownloading ? (
-                            <svg className="w-6 h-6 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                            </svg>
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-200/40 border-t-red-200" aria-hidden="true"/>
                         ) : (
-                            <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                {isDownloaded ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 13l4 4L19 7"/>
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                )}
                             </svg>
                         )}
+                        {isDownloading
+                            ? t('download.cancelButton')
+                            : isDownloaded
+                                ? t('player.downloaded')
+                                : t('player.download')}
                     </button>
                 </div>
             </div>

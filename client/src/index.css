@@ -54,6 +54,34 @@ code {
     background: rgba(249,115,22,0.55);
 }
 
+/* Range sliders (seek bar, volume, speed) */
+input[type="range"].slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    outline: none;
+}
+input[type="range"].slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: #fff;
+    border: none;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+input[type="range"].slider:hover::-webkit-slider-thumb,
+input[type="range"].slider:focus-visible::-webkit-slider-thumb {
+    transform: scale(1.25);
+    background: #fb923c;
+}
+input[type="range"].slider:focus-visible {
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.25);
+}
+
 @keyframes marquee-scroll {
     0% {
         transform: translateX(0);

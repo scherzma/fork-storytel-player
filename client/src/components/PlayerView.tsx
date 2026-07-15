@@ -249,7 +249,11 @@ function PlayerView() {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white relative">
+        <div className="relative flex min-h-screen flex-col bg-[#0d0e11] text-white">
+            <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+                <div className="absolute -left-40 -top-48 h-[34rem] w-[34rem] rounded-full bg-orange-600/10 blur-3xl" />
+                <div className="absolute bottom-[-10rem] right-[-10rem] h-[30rem] w-[30rem] rounded-full bg-amber-300/5 blur-3xl" />
+            </div>
             <Navbar barTitle={t('player.nowPlaying')} onBackClick={() => navigate(`/book/${bookId}`, {state: {book, returnTo}})}>
                 <span>{book.book.name}</span>
             </Navbar>
@@ -257,7 +261,7 @@ function PlayerView() {
             {/* Keyboard Overlay */}
             {showKeyOverlay && (
                 <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
-                    <div className="bg-black bg-opacity-70 rounded-full p-8">
+                    <div className="rounded-full border border-white/10 bg-black/70 p-8 backdrop-blur-md">
                         <svg
                             className="w-16 h-16 text-white"
                             fill="none"
@@ -292,56 +296,57 @@ function PlayerView() {
                 </div>
             )}
 
-            <main className="max-w-4xl mx-auto py-2 sm:px-6 lg:px-8 pb-2">
-                <div className="px-2">
-                    <div className="rounded-lg shadow-lg overflow-hidden">
-                        {/* Book Info */}
-                        <BookInfo
-                            book={book}
-                            currentChapter={chapters.currentChapter}
-                            chapters={chapters.chapters}
-                            currentTime={audioPlayer.currentTime}
-                            playbackRate={playbackRate}
-                            onShowChaptersModal={() => chapters.setShowChaptersModal(true)}
-                            onShowBookmarksModal={() => bookmarks.setShowBookmarksModal(true)}
-                            onDownload={handleDownloadClick}
-                            onCancelDownload={handleDownloadClick}
-                            isDownloaded={isDownloaded}
-                            isDownloading={isDownloading}
-                        />
+            <main className="relative mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-10 sm:px-8 lg:px-10">
+                {/* Book Info */}
+                <BookInfo
+                    book={book}
+                    currentChapter={chapters.currentChapter}
+                    chapters={chapters.chapters}
+                    currentTime={audioPlayer.currentTime}
+                    playbackRate={playbackRate}
+                    onShowChaptersModal={() => chapters.setShowChaptersModal(true)}
+                    onShowBookmarksModal={() => bookmarks.setShowBookmarksModal(true)}
+                    onDownload={handleDownloadClick}
+                    onCancelDownload={handleDownloadClick}
+                    isDownloaded={isDownloaded}
+                    isDownloading={isDownloading}
+                />
+            </main>
 
-                        {/* Audio Element */}
-                        <audio
-                            ref={audioPlayer.audioRef}
-                            src={audioPlayer.audioSrc || undefined}
-                            onTimeUpdate={audioPlayer.handleTimeUpdate}
-                            onLoadedMetadata={audioPlayer.handleLoadedMetadata}
-                            onPlay={audioPlayer.handlePlay}
-                            onPause={audioPlayer.handlePause}
-                            onRateChange={audioPlayer.handleRateChange}
-                            className="hidden"
-                        />
+            {/* Audio Element */}
+            <audio
+                ref={audioPlayer.audioRef}
+                src={audioPlayer.audioSrc || undefined}
+                onTimeUpdate={audioPlayer.handleTimeUpdate}
+                onLoadedMetadata={audioPlayer.handleLoadedMetadata}
+                onPlay={audioPlayer.handlePlay}
+                onPause={audioPlayer.handlePause}
+                onRateChange={audioPlayer.handleRateChange}
+                className="hidden"
+            />
 
-                        {/* Player Controls */}
-                        <PlayerControls
-                            isPlaying={audioPlayer.isPlaying}
-                            currentTime={audioPlayer.currentTime}
-                            duration={audioPlayer.duration}
-                            volume={audioPlayer.volume}
-                            isMuted={audioPlayer.isMuted}
-                            playbackRate={playbackRate}
-                            onPlayPause={audioPlayer.handlePlayPause}
-                            onSeek={audioPlayer.handleSeek}
-                            onVolumeChange={audioPlayer.handleVolumeChange}
-                            onToggleMute={audioPlayer.toggleMute}
-                            onSkipForward={audioPlayer.skipForward}
-                            onSkipBackward={audioPlayer.skipBackward}
-                            onShowGotoModal={gotoModal.openModal}
-                            onShowPlaybackSpeedModal={() => setShowPlaybackSpeedModal(true)}
-                        />
+            {/* Player Controls docked at the bottom */}
+            <footer className="sticky bottom-0 z-30 border-t border-white/[0.07] bg-[#101116]/85 backdrop-blur-xl">
+                <PlayerControls
+                    isPlaying={audioPlayer.isPlaying}
+                    currentTime={audioPlayer.currentTime}
+                    duration={audioPlayer.duration}
+                    volume={audioPlayer.volume}
+                    isMuted={audioPlayer.isMuted}
+                    playbackRate={playbackRate}
+                    onPlayPause={audioPlayer.handlePlayPause}
+                    onSeek={audioPlayer.handleSeek}
+                    onVolumeChange={audioPlayer.handleVolumeChange}
+                    onToggleMute={audioPlayer.toggleMute}
+                    onSkipForward={audioPlayer.skipForward}
+                    onSkipBackward={audioPlayer.skipBackward}
+                    onShowGotoModal={gotoModal.openModal}
+                    onShowPlaybackSpeedModal={() => setShowPlaybackSpeedModal(true)}
+                />
+            </footer>
 
-                        {/* Modals */}
-                        <PlaybackSpeedModal
+            {/* Modals */}
+            <PlaybackSpeedModal
                             isOpen={showPlaybackSpeedModal}
                             playbackRate={playbackRate}
                             onClose={() => setShowPlaybackSpeedModal(false)}
@@ -397,16 +402,13 @@ function PlayerView() {
                             onDeleteBookmark={bookmarks.deleteBookmark}
                         />
 
-                        {/* Download Cancel/Delete Modal */}
-                        <DownloadCancelModal
-                            isOpen={showDownloadCancelModal}
-                            isDownloading={isDownloading}
-                            onConfirm={handleCancelOrDelete}
-                            onCancel={() => setShowDownloadCancelModal(false)}
-                        />
-                    </div>
-                </div>
-            </main>
+            {/* Download Cancel/Delete Modal */}
+            <DownloadCancelModal
+                isOpen={showDownloadCancelModal}
+                isDownloading={isDownloading}
+                onConfirm={handleCancelOrDelete}
+                onCancel={() => setShowDownloadCancelModal(false)}
+            />
         </div>
     );
 }

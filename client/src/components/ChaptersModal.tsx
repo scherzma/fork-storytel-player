@@ -29,13 +29,13 @@ function ChaptersModal({ isOpen, chapters, currentTime, playbackRate, onClose, o
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full mx-4 max-h-96 flex flex-col border border-gray-700">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl border border-white/10 bg-[#17191e] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-white">{t('chapters.title')}</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-white/50 hover:text-white"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -60,7 +60,7 @@ function ChaptersModal({ isOpen, chapters, currentTime, playbackRate, onClose, o
                 return (
                   <div
                     key={chapter.number || index}
-                    className="bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-700 cursor-pointer overflow-hidden transition-colors"
+                    className="bg-white/[0.045] rounded-lg border border-white/10 hover:bg-white/10 cursor-pointer overflow-hidden transition-colors"
                     onClick={() => {
                       onChapterClick(chapterStartTime);
                       onClose();
@@ -71,21 +71,21 @@ function ChaptersModal({ isOpen, chapters, currentTime, playbackRate, onClose, o
                         <h4 className="font-medium text-white text-sm">{chapter.title || `${t('chapters.chapter')} ${chapter.number}`}</h4>
                         {isCurrentChapter ? (
                           <div className="flex justify-between items-center">
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-white/50">
                               {formatTime((currentTime - chapterStartTime) / playbackRate)}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-white/50">
                               {formatTime((chapterDuration - (currentTime - chapterStartTime)) / playbackRate)}
                             </p>
                           </div>
                         ) : (
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-white/50">
                             {formatTime(chapterStartTime / playbackRate)} • {formatTime(chapterDuration / playbackRate)}
                           </p>
                         )}
                       </div>
                       {isCurrentChapter && (
-                        <div className="ml-3 text-orange-400">
+                        <div className="ml-3 text-orange-300">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                           </svg>
@@ -94,9 +94,9 @@ function ChaptersModal({ isOpen, chapters, currentTime, playbackRate, onClose, o
                     </div>
                     {/* Barra di avanzamento del capitolo */}
                     {isCurrentChapter && (
-                      <div className="relative h-1 bg-gray-700">
+                      <div className="relative h-1 bg-white/15">
                         <div
-                          className="absolute top-0 left-0 h-full bg-orange-600 transition-all duration-300"
+                          className="absolute top-0 left-0 h-full bg-orange-500 transition-all duration-300"
                           style={{ width: `${Math.max(chapterProgress, 0)}%` }}
                         />
                       </div>
@@ -106,11 +106,11 @@ function ChaptersModal({ isOpen, chapters, currentTime, playbackRate, onClose, o
               })}
             </div>
           ) : (
-            <div className="text-center text-gray-500 py-8">
-              <svg className="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center text-white/40 py-8">
+              <svg className="w-12 h-12 mx-auto mb-4 text-white/25" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              <p className="text-gray-400">{t('chapters.noChapters')}</p>
+              <p className="text-white/50">{t('chapters.noChapters')}</p>
             </div>
           )}
         </div>
