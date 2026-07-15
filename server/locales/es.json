@@ -137,6 +137,7 @@
     "title": "Leer mientras escuchas (experimental)",
     "shortTitle": "Leer a la vez",
     "open": "Abrir lectura sincronizada",
+    "coverView": "Vista de portada",
     "start": "Iniciar transcripción",
     "stop": "Detener",
     "clear": "Borrar texto",

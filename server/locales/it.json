@@ -141,6 +141,7 @@
     "title": "Leggi durante l’ascolto (sperimentale)",
     "shortTitle": "Leggi insieme",
     "open": "Apri lettura sincronizzata",
+    "coverView": "Vista copertina",
     "start": "Avvia trascrizione",
     "stop": "Interrompi",
     "clear": "Cancella testo",

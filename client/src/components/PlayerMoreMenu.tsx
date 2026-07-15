@@ -4,11 +4,12 @@ import {useTranslation} from 'react-i18next';
 interface PlayerMoreMenuProps {
     historyCount: number;
     isTranscribing: boolean;
+    isReadAlongView?: boolean;
     onShowHistory: () => void;
     onShowTranscription: () => void;
 }
 
-function PlayerMoreMenu({historyCount, isTranscribing, onShowHistory, onShowTranscription}: PlayerMoreMenuProps) {
+function PlayerMoreMenu({historyCount, isTranscribing, isReadAlongView = false, onShowHistory, onShowTranscription}: PlayerMoreMenuProps) {
     const {t} = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -51,7 +52,7 @@ function PlayerMoreMenu({historyCount, isTranscribing, onShowHistory, onShowTran
                 <div className="absolute bottom-full right-0 z-50 mb-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-[#202228]/98 p-1.5 shadow-2xl backdrop-blur-xl">
                     <button type="button" onClick={() => select(onShowTranscription)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-white/75 transition hover:bg-white/[0.08] hover:text-white">
                         <svg className="h-4 w-4 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6h16M4 12h10M4 18h13"/></svg>
-                        <span className="flex-1">{t('transcription.shortTitle')}</span>
+                        <span className="flex-1">{t(isReadAlongView ? 'transcription.coverView' : 'transcription.shortTitle')}</span>
                         {isTranscribing && <span className="h-2 w-2 animate-pulse rounded-full bg-orange-300"/>}
                     </button>
                     <button type="button" onClick={() => select(onShowHistory)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-white/75 transition hover:bg-white/[0.08] hover:text-white">

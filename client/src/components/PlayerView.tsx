@@ -22,6 +22,7 @@ import {usePlayer} from '../contexts/PlayerContext';
 import {buildCatalogSearchPath, CatalogSearchSource} from '../utils/catalogSearch';
 import ListeningHistoryModal from './ListeningHistoryModal';
 import ExternalProgressNotice from './ExternalProgressNotice';
+import InlineReadAlong from './InlineReadAlong';
 
 interface PlayerViewProps {
     isOverlay?: boolean;
@@ -43,7 +44,6 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
         startPlayback,
         playbackRate,
         setPlaybackRate,
-        openTranscription,
         transcription,
         playerError,
         audio: audioPlayer,
@@ -58,6 +58,13 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
     const [isDownloading, setIsDownloading] = useState(false);
     const [showDownloadCancelModal, setShowDownloadCancelModal] = useState(false);
     const [showListeningHistory, setShowListeningHistory] = useState(false);
+    const [showReadAlong, setShowReadAlong] = useState(false);
+
+    const toggleReadAlong = () => {
+        const nextValue = !showReadAlong;
+        setShowReadAlong(nextValue);
+        if (nextValue && !transcription.isEnabled) transcription.start();
+    };
 
     const closePlayer = () => {
         if (onClose) {
@@ -232,7 +239,7 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
 
     return (
         <div
-            className={`${isOverlay ? 'fixed inset-0 z-50 overflow-y-auto' : 'relative min-h-screen'} flex flex-col bg-[#0d0e11] text-white`}
+            className={`${isOverlay ? `fixed inset-0 z-50 ${showReadAlong ? 'overflow-hidden' : 'overflow-y-auto'}` : 'relative min-h-screen'} flex flex-col bg-[#0d0e11] text-white`}
             role={isOverlay ? 'dialog' : undefined}
             aria-modal={isOverlay ? true : undefined}
             aria-label={isOverlay ? t('player.nowPlaying') : undefined}
@@ -245,9 +252,22 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                 <span>{book.book.name}</span>
             </Navbar>
 
-            <main className="relative mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-10 sm:px-8 lg:px-10">
-                {/* Book Info */}
-                <BookInfo
+            <main className={`relative mx-auto flex w-full max-w-6xl flex-1 px-5 sm:px-8 lg:px-10 ${showReadAlong ? 'min-h-0 items-stretch py-5 sm:py-6' : 'items-center py-10'}`}>
+                {showReadAlong ? (
+                    <InlineReadAlong
+                        book={book}
+                        status={transcription.status}
+                        progress={transcription.progress}
+                        segments={transcription.segments}
+                        isEnabled={transcription.isEnabled}
+                        currentTime={audioPlayer.currentTime}
+                        onStart={transcription.start}
+                        onStop={transcription.stop}
+                        onSeek={time => audioPlayer.handleSeek(time, 'seek')}
+                        onExit={() => setShowReadAlong(false)}
+                    />
+                ) : (
+                    <BookInfo
                     book={book}
                     currentChapter={chapters.currentChapter}
                     chapters={chapters.chapters}
@@ -260,7 +280,8 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                     isDownloaded={isDownloaded}
                     isDownloading={isDownloading}
                     onSearchCatalog={searchCatalog}
-                />
+                    />
+                )}
             </main>
 
             {/* Player Controls docked at the bottom */}
@@ -284,8 +305,9 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                     onShowGotoModal={gotoModal.openModal}
                     onShowPlaybackSpeedModal={() => setShowPlaybackSpeedModal(true)}
                     onShowHistory={() => setShowListeningHistory(true)}
-                    onShowTranscription={openTranscription}
+                    onShowTranscription={toggleReadAlong}
                     isTranscribing={transcription.isEnabled}
+                    isReadAlongView={showReadAlong}
                 />
             </footer>
 

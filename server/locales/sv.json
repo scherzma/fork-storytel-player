@@ -137,6 +137,7 @@
     "title": "Läs med (experimentell)",
     "shortTitle": "Läs med",
     "open": "Öppna läs med",
+    "coverView": "Omslagsvy",
     "start": "Starta transkribering",
     "stop": "Stoppa",
     "clear": "Rensa text",

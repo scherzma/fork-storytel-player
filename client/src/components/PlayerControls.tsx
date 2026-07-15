@@ -26,6 +26,7 @@ interface PlayerControlsProps {
     onShowHistory: () => void;
     onShowTranscription: () => void;
     isTranscribing: boolean;
+    isReadAlongView?: boolean;
 }
 
 const PlayerControls: React.FC<PlayerControlsProps> = ({
@@ -49,6 +50,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     onShowHistory,
     onShowTranscription,
     isTranscribing,
+    isReadAlongView = false,
 }) => {
     const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onSeek(parseFloat(e.target.value));
@@ -101,7 +103,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
                     <button onClick={onShowGotoModal} className={`${pillButton} hidden sm:flex`}>
                         {t('gotoModal.go')}
                     </button>
-                    <PlayerMoreMenu historyCount={history.length} isTranscribing={isTranscribing} onShowHistory={onShowHistory} onShowTranscription={onShowTranscription}/>
+                    <PlayerMoreMenu historyCount={history.length} isTranscribing={isTranscribing} isReadAlongView={isReadAlongView} onShowHistory={onShowHistory} onShowTranscription={onShowTranscription}/>
                 </div>
 
                 {/* Center controls */}

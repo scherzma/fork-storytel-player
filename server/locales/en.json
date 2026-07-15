@@ -141,6 +141,7 @@
     "title": "Read along (experimental)",
     "shortTitle": "Read along",
     "open": "Open read along",
+    "coverView": "Cover view",
     "start": "Start transcription",
     "stop": "Stop",
     "clear": "Clear text",

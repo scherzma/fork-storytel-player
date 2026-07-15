@@ -137,6 +137,7 @@
     "title": "Lecture synchronisée (expérimentale)",
     "shortTitle": "Lire en même temps",
     "open": "Ouvrir la lecture synchronisée",
+    "coverView": "Vue de la couverture",
     "start": "Démarrer la transcription",
     "stop": "Arrêter",
     "clear": "Effacer le texte",
