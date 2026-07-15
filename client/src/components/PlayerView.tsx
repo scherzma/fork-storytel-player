@@ -43,6 +43,8 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
         startPlayback,
         playbackRate,
         setPlaybackRate,
+        openTranscription,
+        transcription,
         playerError,
         audio: audioPlayer,
     } = usePlayer();
@@ -282,6 +284,8 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                     onShowGotoModal={gotoModal.openModal}
                     onShowPlaybackSpeedModal={() => setShowPlaybackSpeedModal(true)}
                     onShowHistory={() => setShowListeningHistory(true)}
+                    onShowTranscription={openTranscription}
+                    isTranscribing={transcription.isEnabled}
                 />
             </footer>
 

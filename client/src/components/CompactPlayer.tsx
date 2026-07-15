@@ -17,6 +17,8 @@ function CompactPlayer() {
         playbackRate,
         setPlaybackRate,
         openExpandedPlayer,
+        openTranscription,
+        transcription,
         audio,
     } = usePlayer();
     const [showHistory, setShowHistory] = useState(false);
@@ -102,6 +104,10 @@ function CompactPlayer() {
                     >
                         {playbackRate}x
                     </button>
+                    <button type="button" onClick={openTranscription} aria-label={t('transcription.open')} title={t('transcription.open')} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white md:hidden">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6h16M4 12h10M4 18h13"/></svg>
+                        {transcription.isEnabled && <span className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full bg-orange-300"/>}
+                    </button>
                     <button data-testid="open-full-player-mobile" type="button" onClick={openExpandedPlayer} aria-label={t('player.openFullPlayer')} title={t('player.openFullPlayer')} className="ml-1 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white md:hidden">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
                     </button>
@@ -145,6 +151,10 @@ function CompactPlayer() {
                             className="slider w-20 xl:w-24"
                         />
                     </div>
+                    <button type="button" onClick={openTranscription} aria-label={t('transcription.open')} title={t('transcription.open')} className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6h16M4 12h10M4 18h13"/></svg>
+                        {transcription.isEnabled && <span className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full bg-orange-300"/>}
+                    </button>
                     <button type="button" onClick={() => setShowHistory(true)} aria-label={t('listeningHistory.open')} title={t('listeningHistory.open')} className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
                         {audio.history.length > 0 && (

@@ -132,6 +132,30 @@
       "deviceSync": "Datorposition sparad"
     }
   },
+  "transcription": {
+    "title": "Livetranskribering (experimentell)",
+    "shortTitle": "Transkript",
+    "open": "Öppna livetranskript",
+    "start": "Starta transkribering",
+    "stop": "Stoppa",
+    "clear": "Rensa text",
+    "localPrivacy": "Ljudet stannar på den här enheten. Endast talmodellen hämtas.",
+    "modelDownload": "Förbereder lokal modell… {{progress}} %",
+    "empty": "Inget transkript ännu",
+    "emptyHint": "Starta transkriberingen och spela upp ljudboken. Text visas i avsnitt på ungefär tio sekunder; välj ett avsnitt för att hoppa tillbaka.",
+    "experimentalNote": "Detta första experiment transkriberar ljudet efter uppspelning, så texten ligger efter. Noggrannhet och hastighet beror på uppläsare, språk, uppspelningshastighet och hårdvara.",
+    "unsupported": "Den här enheten kan inte fånga ljudboksströmmen för lokal transkribering.",
+    "failed": "Den lokala transkriberingen misslyckades.",
+    "status": {
+      "idle": "Transkribering är avstängd",
+      "loading": "Hämtar och förbereder modellen",
+      "ready": "Redo — spela upp ljudboken",
+      "listening": "Lyssnar lokalt",
+      "processing": "Omvandlar det senaste ljudet till text",
+      "unsupported": "Ljudinspelning är inte tillgänglig",
+      "error": "Transkriberingsfel"
+    }
+  },
   "bookmarks": {
     "title": "Dina bokmärken",
     "noBookmarks": "Inga bokmärken sparade",

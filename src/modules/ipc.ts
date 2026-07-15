@@ -47,7 +47,11 @@ export class IpcManager {
     return key === 'hasSeenWelcome' ||
       key === 'appLanguage' ||
       key === 'settings.alwaysOnTop' ||
-      /^pos:[A-Za-z0-9_-]{1,128}$/.test(key);
+      key === 'libraryViewMode' ||
+      key === 'librarySort' ||
+      key === 'playbackRate' ||
+      /^pos:[A-Za-z0-9_-]{1,128}$/.test(key) ||
+      /^listening-history:[A-Za-z0-9_-]{1,128}$/.test(key);
   }
 
   private validateStoreValue(value: unknown): void {

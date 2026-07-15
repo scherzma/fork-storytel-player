@@ -136,6 +136,30 @@
       "deviceSync": "Posizione desktop conservata"
     }
   },
+  "transcription": {
+    "title": "Trascrizione in tempo reale (sperimentale)",
+    "shortTitle": "Trascrizione",
+    "open": "Apri la trascrizione in tempo reale",
+    "start": "Avvia trascrizione",
+    "stop": "Interrompi",
+    "clear": "Cancella testo",
+    "localPrivacy": "L’audio rimane su questo dispositivo. Viene scaricato solo il modello vocale.",
+    "modelDownload": "Preparazione del modello locale… {{progress}}%",
+    "empty": "Nessuna trascrizione",
+    "emptyHint": "Avvia la trascrizione e riproduci l’audiolibro. Il testo appare in sezioni di circa dieci secondi; selezionane una per tornare a quel punto.",
+    "experimentalNote": "Questo primo esperimento trascrive l’audio dopo la riproduzione, quindi il testo sarà in ritardo. Precisione e velocità dipendono da voce narrante, lingua, velocità di riproduzione e hardware.",
+    "unsupported": "Questo dispositivo non può acquisire il flusso dell’audiolibro per la trascrizione locale.",
+    "failed": "La trascrizione locale non è riuscita.",
+    "status": {
+      "idle": "Trascrizione disattivata",
+      "loading": "Download e preparazione del modello",
+      "ready": "Pronto — riproduci l’audiolibro",
+      "listening": "Ascolto locale",
+      "processing": "Conversione dell’audio più recente in testo",
+      "unsupported": "Acquisizione audio non disponibile",
+      "error": "Errore di trascrizione"
+    }
+  },
   "bookmarks": {
     "title": "I tuoi Bookmarks",
     "noBookmarks": "Nessun bookmark salvato",
