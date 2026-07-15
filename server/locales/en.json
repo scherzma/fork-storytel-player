@@ -18,6 +18,14 @@
   },
   "dashboard": {
     "title": "My Library",
+    "eyebrow": "Your listening",
+    "subtitle": "{{count}} audiobooks saved and ready when you are.",
+    "findBooks": "Find new books",
+    "browseCatalog": "Browse the catalog",
+    "filterLabel": "Filter library",
+    "noMatches": "Nothing matches these filters",
+    "noMatchesHint": "Try another search or show all of your books.",
+    "clearFilters": "Clear filters",
     "logout": "Logout",
     "settings": "Settings",
     "search": "Search books...",
@@ -26,10 +34,39 @@
     "loading": "Loading your library...",
     "loadError": "Failed to load bookshelf",
     "filters": {
+      "all": "All",
       "notStarted": "Not started",
       "started": "Started",
       "concluded": "Concluded"
     }
+  },
+  "navigation": {
+    "main": "Main navigation",
+    "library": "Library",
+    "discover": "Discover"
+  },
+  "discover": {
+    "title": "Discover books",
+    "eyebrow": "Explore Storytel",
+    "subtitle": "Search the Storytel catalog by title, author, or narrator.",
+    "placeholder": "Title, author, or narrator",
+    "search": "Search",
+    "searching": "Searching...",
+    "prompt": "Find your next audiobook",
+    "promptDescription": "Enter at least two characters to search the catalog.",
+    "noResults": "No matching audiobooks found.",
+    "searchError": "The catalog search failed. Please try again.",
+    "queryTooShort": "Enter at least two characters.",
+    "results": "{{count}} audiobooks found"
+    ,"resultsEyebrow": "Search results",
+    "saveHint": "Use the bookmark button to add a book to your Storytel library.",
+    "save": "Save {{title}} to your library",
+    "remove": "Remove {{title}} from your library",
+    "saveShort": "Save",
+    "saved": "Saved",
+    "saveSuccess": "“{{title}}” was added to your library.",
+    "removeSuccess": "“{{title}}” was removed from your library.",
+    "saveError": "Storytel could not update your library. Please try again."
   },
   "player": {
     "chapters": "Chapters",
@@ -82,6 +119,9 @@
     "close": "Close"
   },
   "bookCard": {
+    "open": "Open {{title}}",
+    "unknownAuthor": "Unknown author",
+    "timeRemaining": "{{time}} remaining",
     "completed": "Completed",
     "remaining": "remaining",
     "author": "Author:",

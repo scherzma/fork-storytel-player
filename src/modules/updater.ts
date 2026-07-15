@@ -21,6 +21,14 @@ export class UpdaterManager {
             return;
         }
 
+        // This fork is distributed without a commercial signing certificate.
+        // Do not trust remotely replaceable update metadata by default. Signed
+        // release maintainers may explicitly opt in at process launch.
+        if (process.env.STORYTEL_ENABLE_AUTO_UPDATES !== 'true') {
+            console.log('Auto-updater disabled; install reviewed releases manually');
+            return;
+        }
+
         // Check for updates on startup
         this.checkForUpdates();
 

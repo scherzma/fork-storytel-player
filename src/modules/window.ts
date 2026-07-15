@@ -1,4 +1,4 @@
-import {BrowserWindow, Menu, app} from 'electron';
+import {BrowserWindow, Menu, app, shell} from 'electron';
 import {spawn, ChildProcess} from 'child_process';
 import * as path from 'path';
 import {WindowConfig} from '../types';
@@ -30,8 +30,10 @@ export class WindowManager {
         this.mainWindow = new BrowserWindow({
             ...windowConfig,
             webPreferences: {
-                nodeIntegration: true,
+                nodeIntegration: false,
                 contextIsolation: true,
+                sandbox: true,
+                webSecurity: true,
                 devTools: this.isDev || this.isDebug,
                 partition: 'persist:storytel-app',
                 preload: path.join(__dirname, '../preload.js'),
@@ -74,6 +76,46 @@ export class WindowManager {
         this.mainWindow.on('closed', () => {
             this.mainWindow = null;
         });
+
+        this.mainWindow.webContents.setWindowOpenHandler(({url}) => {
+            if (this.isAllowedExternalUrl(url)) {
+                void shell.openExternal(url);
+            }
+            return {action: 'deny'};
+        });
+
+        this.mainWindow.webContents.on('will-navigate', (event, url) => {
+            if (this.isAllowedMainNavigation(url)) return;
+            event.preventDefault();
+            if (this.isAllowedExternalUrl(url)) {
+                void shell.openExternal(url);
+            }
+        });
+    }
+
+    private isAllowedMainNavigation(url: string): boolean {
+        try {
+            const parsed = new URL(url);
+            if (this.isDev) {
+                return parsed.protocol === 'http:' &&
+                    (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') &&
+                    parsed.port === '3000';
+            }
+            return parsed.protocol === 'file:';
+        } catch {
+            return false;
+        }
+    }
+
+    private isAllowedExternalUrl(url: string): boolean {
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol !== 'https:') return false;
+            return (parsed.hostname === 'github.com' && parsed.pathname.startsWith('/debba/storytel-player')) ||
+                (parsed.hostname === 'discord.gg' && parsed.pathname === '/YrZPHAwMSG');
+        } catch {
+            return false;
+        }
     }
 
     private startDevelopmentServers(): void {

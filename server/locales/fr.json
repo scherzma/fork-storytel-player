@@ -13,6 +13,14 @@
     }
   },
   "dashboard": {
+    "eyebrow": "Vos écoutes",
+    "subtitle": "{{count}} livres audio enregistrés et prêts à écouter.",
+    "findBooks": "Trouver des livres",
+    "browseCatalog": "Parcourir le catalogue",
+    "filterLabel": "Filtrer la bibliothèque",
+    "noMatches": "Aucun résultat avec ces filtres",
+    "noMatchesHint": "Essayez une autre recherche ou affichez tous vos livres.",
+    "clearFilters": "Effacer les filtres",
     "title": "Ma Bibliothèque",
     "logout": "Se déconnecter",
     "settings": "Paramètres",
@@ -22,10 +30,39 @@
     "loading": "Chargement de votre bibliothèque...",
     "loadError": "Échec du chargement de la bibliothèque",
     "filters": {
+      "all": "Tous",
       "notStarted": "Non commencé",
       "started": "Commencé",
       "concluded": "Terminé"
     }
+  },
+  "navigation": {
+    "main": "Navigation principale",
+    "library": "Bibliothèque",
+    "discover": "Découvrir"
+  },
+  "discover": {
+    "eyebrow": "Explorer Storytel",
+    "resultsEyebrow": "Résultats de recherche",
+    "saveHint": "Utilisez le marque-page pour ajouter un livre à votre bibliothèque Storytel.",
+    "save": "Enregistrer {{title}} dans votre bibliothèque",
+    "remove": "Retirer {{title}} de votre bibliothèque",
+    "saveShort": "Enregistrer",
+    "saved": "Enregistré",
+    "saveSuccess": "« {{title}} » a été ajouté à votre bibliothèque.",
+    "removeSuccess": "« {{title}} » a été retiré de votre bibliothèque.",
+    "saveError": "Storytel n'a pas pu mettre à jour votre bibliothèque. Réessayez.",
+    "title": "Découvrir des livres",
+    "subtitle": "Recherchez dans le catalogue Storytel par titre, auteur ou narrateur.",
+    "placeholder": "Titre, auteur ou narrateur",
+    "search": "Rechercher",
+    "searching": "Recherche...",
+    "prompt": "Trouvez votre prochain livre audio",
+    "promptDescription": "Saisissez au moins deux caractères pour rechercher dans le catalogue.",
+    "noResults": "Aucun livre audio correspondant trouvé.",
+    "searchError": "La recherche dans le catalogue a échoué. Veuillez réessayer.",
+    "queryTooShort": "Saisissez au moins deux caractères.",
+    "results": "{{count}} livres audio trouvés"
   },
   "player": {
     "chapters": "Chapitres",
@@ -78,6 +115,9 @@
     "close": "Fermer"
   },
   "bookCard": {
+    "open": "Ouvrir {{title}}",
+    "unknownAuthor": "Auteur inconnu",
+    "timeRemaining": "{{time}} restantes",
     "completed": "Terminé",
     "remaining": "restant",
     "author": "Auteur :",

@@ -14,6 +14,14 @@
   },
   "dashboard": {
     "title": "Meine Bibliothek",
+    "eyebrow": "Deine Hörbücher",
+    "subtitle": "{{count}} Hörbücher gespeichert und jederzeit bereit.",
+    "findBooks": "Neue Bücher finden",
+    "browseCatalog": "Katalog durchsuchen",
+    "filterLabel": "Bibliothek filtern",
+    "noMatches": "Keine Treffer für diese Filter",
+    "noMatchesHint": "Probiere eine andere Suche oder zeige alle Bücher an.",
+    "clearFilters": "Filter löschen",
     "logout": "Abmelden",
     "settings": "Einstellungen",
     "search": "Bücher suchen...",
@@ -22,10 +30,39 @@
     "loading": "Bibliothek wird geladen...",
     "loadError": "Bücherregal konnte nicht geladen werden",
     "filters": {
+      "all": "Alle",
       "notStarted": "Nicht begonnen",
       "started": "Begonnen",
       "concluded": "Abgeschlossen"
     }
+  },
+  "navigation": {
+    "main": "Hauptnavigation",
+    "library": "Bibliothek",
+    "discover": "Entdecken"
+  },
+  "discover": {
+    "title": "Bücher entdecken",
+    "eyebrow": "Storytel entdecken",
+    "subtitle": "Durchsuche den Storytel-Katalog nach Titel, Autor oder Sprecher.",
+    "placeholder": "Titel, Autor oder Sprecher",
+    "search": "Suchen",
+    "searching": "Suche läuft...",
+    "prompt": "Finde dein nächstes Hörbuch",
+    "promptDescription": "Gib mindestens zwei Zeichen ein, um den Katalog zu durchsuchen.",
+    "noResults": "Keine passenden Hörbücher gefunden.",
+    "searchError": "Die Katalogsuche ist fehlgeschlagen. Bitte versuche es erneut.",
+    "queryTooShort": "Gib mindestens zwei Zeichen ein.",
+    "results": "{{count}} Hörbücher gefunden",
+    "resultsEyebrow": "Suchergebnisse",
+    "saveHint": "Mit dem Lesezeichen fügst du ein Buch deiner Storytel-Bibliothek hinzu.",
+    "save": "{{title}} in deiner Bibliothek speichern",
+    "remove": "{{title}} aus deiner Bibliothek entfernen",
+    "saveShort": "Speichern",
+    "saved": "Gespeichert",
+    "saveSuccess": "„{{title}}“ wurde deiner Bibliothek hinzugefügt.",
+    "removeSuccess": "„{{title}}“ wurde aus deiner Bibliothek entfernt.",
+    "saveError": "Storytel konnte deine Bibliothek nicht aktualisieren. Bitte versuche es erneut."
   },
   "player": {
     "chapters": "Kapitel",
@@ -78,6 +115,9 @@
     "close": "Schließen"
   },
   "bookCard": {
+    "open": "{{title}} öffnen",
+    "unknownAuthor": "Unbekannter Autor",
+    "timeRemaining": "Noch {{time}}",
     "completed": "Abgeschlossen",
     "remaining": "verbleibend",
     "author": "Autor:",

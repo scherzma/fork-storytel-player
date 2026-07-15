@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainInvokeEvent, shell } from 'electron';
+import { ipcMain, IpcMainEvent, IpcMainInvokeEvent, shell } from 'electron';
 import path from 'path';
 import { storeManager } from './store';
 import { ServerManager } from './server';
@@ -36,19 +36,84 @@ export class IpcManager {
     this.setupAuthHandlers();
   }
 
+  private assertTrustedSender(event: IpcMainInvokeEvent | IpcMainEvent): void {
+    const mainWindow = this.windowManager.getWindow();
+    if (!mainWindow || event.sender.id !== mainWindow.webContents.id) {
+      throw new Error('IPC request rejected from an untrusted renderer');
+    }
+  }
+
+  private isRendererStorageKeyAllowed(key: string): boolean {
+    return key === 'hasSeenWelcome' ||
+      key === 'appLanguage' ||
+      key === 'settings.alwaysOnTop' ||
+      /^pos:[A-Za-z0-9_-]{1,128}$/.test(key);
+  }
+
+  private validateStoreValue(value: unknown): void {
+    const serialized = JSON.stringify(value);
+    if (serialized === undefined || serialized.length > 1024 * 1024) {
+      throw new Error('Stored value is invalid or too large');
+    }
+  }
+
+  private validateApiUrl(url: string): void {
+    if (typeof url !== 'string' || url.length > 2048 || !url.startsWith('/api/')) {
+      throw new Error('Invalid internal API path');
+    }
+    const parsed = new URL(url, 'http://localhost');
+    if (parsed.origin !== 'http://localhost' || !parsed.pathname.startsWith('/api/')) {
+      throw new Error('Invalid internal API path');
+    }
+  }
+
+  private async injectRendererRequest(method: string, url: string, payload?: any): Promise<any> {
+    this.validateApiUrl(url);
+    const headers: Record<string, string> = {};
+    const token = storeManager.get<string>('token');
+    if (token && url !== '/api/login' && url !== '/api/sso-login') {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await this.serverManager.injectRequest(method, url, payload, headers);
+    if (response?.statusCode === 401) {
+      storeManager.remove('token');
+    }
+
+    if (method === 'POST' && url === '/api/login' && response?.data?.token) {
+      storeManager.set('token', response.data.token);
+      const { token: _token, ...safeData } = response.data;
+      return { ...response, data: safeData };
+    }
+
+    if (method === 'POST' && url === '/api/logout') {
+      storeManager.remove('token');
+    }
+    return response;
+  }
+
   private setupStoreHandlers(): void {
-    ipcMain.handle('store-get', (_event: IpcMainInvokeEvent, key: string) => {
+    ipcMain.handle('store-get', (event: IpcMainInvokeEvent, key: string) => {
+      this.assertTrustedSender(event);
+      if (!this.isRendererStorageKeyAllowed(key)) throw new Error('Storage key is not readable');
       return storeManager.get(key);
     });
 
     ipcMain.handle(
       'store-set',
-      (_event: IpcMainInvokeEvent, key: string, value: any) => {
+      (event: IpcMainInvokeEvent, key: string, value: any) => {
+        this.assertTrustedSender(event);
+        if (!this.isRendererStorageKeyAllowed(key)) throw new Error('Storage key is not writable');
+        this.validateStoreValue(value);
         storeManager.set(key, value);
       }
     );
 
-    ipcMain.handle('store-remove', (_event: IpcMainInvokeEvent, key: string) => {
+    ipcMain.handle('store-remove', (event: IpcMainInvokeEvent, key: string) => {
+      this.assertTrustedSender(event);
+      if (key !== 'token' && !this.isRendererStorageKeyAllowed(key)) {
+        throw new Error('Storage key is not removable');
+      }
       storeManager.remove(key);
     });
   }
@@ -56,59 +121,43 @@ export class IpcManager {
   private setupApiHandlers(): void {
     ipcMain.handle(
       'api:get',
-      async (_event: IpcMainInvokeEvent, url: string, config: ApiConfig = {}) => {
-        return await this.serverManager.injectRequest(
-          'GET',
-          url,
-          undefined,
-          config?.headers
-        );
+      async (event: IpcMainInvokeEvent, url: string, _config: ApiConfig = {}) => {
+        this.assertTrustedSender(event);
+        return await this.injectRendererRequest('GET', url);
       }
     );
 
     ipcMain.handle(
       'api:post',
       async (
-        _event: IpcMainInvokeEvent,
+        event: IpcMainInvokeEvent,
         url: string,
         data: any = {},
         config: ApiConfig = {}
       ) => {
-        return await this.serverManager.injectRequest(
-          'POST',
-          url,
-          data,
-          config?.headers
-        );
+        this.assertTrustedSender(event);
+        return await this.injectRendererRequest('POST', url, data);
       }
     );
 
     ipcMain.handle(
       'api:put',
       async (
-        _event: IpcMainInvokeEvent,
+        event: IpcMainInvokeEvent,
         url: string,
         data: any = {},
         config: ApiConfig = {}
       ) => {
-        return await this.serverManager.injectRequest(
-          'PUT',
-          url,
-          data,
-          config?.headers
-        );
+        this.assertTrustedSender(event);
+        return await this.injectRendererRequest('PUT', url, data);
       }
     );
 
     ipcMain.handle(
       'api:delete',
-      async (_event: IpcMainInvokeEvent, url: string, config: ApiConfig = {}) => {
-        return await this.serverManager.injectRequest(
-          'DELETE',
-          url,
-          undefined,
-          config?.headers
-        );
+      async (event: IpcMainInvokeEvent, url: string, _config: ApiConfig = {}) => {
+        this.assertTrustedSender(event);
+        return await this.injectRendererRequest('DELETE', url);
       }
     );
   }
@@ -116,25 +165,29 @@ export class IpcManager {
   private setupTrayHandlers(): void {
     ipcMain.on(
       'update-playing-state',
-      (_event, { isPlaying, bookTitle }: { isPlaying: boolean; bookTitle: string }) => {
+      (event, { isPlaying, bookTitle }: { isPlaying: boolean; bookTitle: string }) => {
+        this.assertTrustedSender(event);
         this.trayManager.updatePlayingState({ isPlaying, bookTitle });
       }
     );
 
     ipcMain.on(
       'update-auth-state',
-      (_event, { isAuthenticated }: { isAuthenticated: boolean }) => {
+      (event, { isAuthenticated }: { isAuthenticated: boolean }) => {
+        this.assertTrustedSender(event);
         this.trayManager.updatePlayingState({ isAuthenticated });
       }
     );
   }
 
   private setupLocaleHandlers(): void {
-    ipcMain.handle('get-locale', () => {
+    ipcMain.handle('get-locale', (event) => {
+      this.assertTrustedSender(event);
       return i18n.getLanguage();
     });
 
-    ipcMain.handle('set-locale', (_event: IpcMainInvokeEvent, locale: string) => {
+    ipcMain.handle('set-locale', (event: IpcMainInvokeEvent, locale: string) => {
+      this.assertTrustedSender(event);
       storeManager.set('appLanguage', locale);
       
       // Update the current language in i18n
@@ -153,18 +206,21 @@ export class IpcManager {
   }
 
   private setupLogsHandlers(): void {
-    ipcMain.handle('open-logs-folder', () => {
+    ipcMain.handle('open-logs-folder', (event) => {
+      this.assertTrustedSender(event);
       const logPath = path.join(process.env.USER_DATA_PATH || '', 'app.log');
       shell.showItemInFolder(logPath);
     });
   }
 
   private setupWindowHandlers(): void {
-    ipcMain.handle('window-set-always-on-top', (_event: IpcMainInvokeEvent, alwaysOnTop: boolean) => {
+    ipcMain.handle('window-set-always-on-top', (event: IpcMainInvokeEvent, alwaysOnTop: boolean) => {
+      this.assertTrustedSender(event);
       this.windowManager.setAlwaysOnTop(alwaysOnTop);
     });
 
-    ipcMain.handle('window-is-always-on-top', () => {
+    ipcMain.handle('window-is-always-on-top', (event) => {
+      this.assertTrustedSender(event);
       return this.windowManager.isAlwaysOnTop();
     });
   }
@@ -172,9 +228,25 @@ export class IpcManager {
   private setupAuthHandlers(): void {
     ipcMain.handle(
       'auth:open-sso-window',
-      async (_event: IpcMainInvokeEvent, provider?: 'google' | 'apple') => {
+      async (event: IpcMainInvokeEvent, provider?: 'google' | 'apple') => {
+        this.assertTrustedSender(event);
         const parent = this.windowManager.getWindow();
-        return this.ssoManager.openSsoWindow(parent, provider);
+        const result = await this.ssoManager.openSsoWindow(parent, provider);
+        if (result.cancelled || result.error || !result.credentials) return result;
+
+        const response = await this.serverManager.injectRequest(
+          'POST',
+          '/api/sso-login',
+          result.credentials,
+        );
+        if (response?.__isError || !response?.data?.token) {
+          return {
+            cancelled: false,
+            error: response?.error || 'SSO session could not be created',
+          };
+        }
+        storeManager.set('token', response.data.token);
+        return { cancelled: false };
       }
     );
   }

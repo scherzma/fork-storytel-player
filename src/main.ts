@@ -6,6 +6,7 @@ import {IpcManager} from './modules/ipc';
 import {UpdaterManager} from './modules/updater';
 import {SsoManager} from './modules/sso';
 import {i18n} from './i18n';
+import {storeManager} from './modules/store';
 
 const isDev = process.env.NODE_ENV === 'development';
 const isDebug = process.env.IS_DEBUG === 'true';
@@ -22,6 +23,7 @@ async function initialize(): Promise<void> {
     process.env.IS_ELECTRON = 'true';
     process.env.DOWNLOAD_PATH = app.getPath('downloads');
     process.env.USER_DATA_PATH = app.getPath('userData');
+    process.env.JWT_SECRET = storeManager.getOrCreateSecureSecret('jwtSecret');
 
     windowManager = new WindowManager(isDev, isDebug);
     const mainWindow = windowManager.create();

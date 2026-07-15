@@ -4,11 +4,24 @@
 
 body {
   margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #0d0e11;
+  color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.42);
+  color: white;
+}
+
+button, input {
+  font: inherit;
 }
 
 code {
@@ -26,18 +39,19 @@ code {
 
 /* CSS della scrollbar semitrasparente */
 ::-webkit-scrollbar {
-    width: 2px;
+    width: 8px;
+    height: 8px;
 }
 ::-webkit-scrollbar-track {
     background: rgba(0,0,0,0.1);
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.4);
+    background: rgba(255,255,255,0.14);
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.6);
+    background: rgba(249,115,22,0.55);
 }
 
 @keyframes marquee-scroll {

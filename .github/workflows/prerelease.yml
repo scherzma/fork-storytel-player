@@ -139,7 +139,7 @@ jobs:
           '
 
       - name: Build
-        run: npm run install-all
+        run: npm run ci:install-all
 
       # macOS notarization uses the App Store Connect API key. The .p8 is stored
       # base64-encoded in APPLE_API_KEY_CONTENT and decoded into a temp file.

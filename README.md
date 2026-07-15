@@ -24,11 +24,11 @@ See the [CHANGELOG](CHANGELOG.md) for the full list of changes across all releas
 
 ✅ **Native Desktop App**: Cross-platform application with system tray integration and single instance lock
 
-✅ **Audiobook Library**: Browse your Storytel library with cover art and progress tracking. Supports real-time search by title, author, or narrator (Ctrl/Cmd+K shortcut)
+✅ **Audiobook Library and Discovery**: Browse your Storytel library with cover art and progress tracking, or search the wider Storytel catalog by title, author, or narrator (Ctrl/Cmd+K shortcut)
 
 ✅ **Audio Player**: HTML5 audio player with playback controls and bookmarks
 
-✅ **Session Management**: Secure authentication with persistent storage via electron-store
+✅ **Session Management**: Storytel sessions stay in Electron's main process and are encrypted with the operating system's credential protection through Electron `safeStorage`
 
 ✅ **Internationalization**: Multi-language support (i18next) with automatic language detection
 
@@ -54,7 +54,7 @@ The application is built with TypeScript and follows a modular architecture:
   - Tray Manager: System tray integration
   - Server Manager: Embedded Fastify server management
   - IPC Manager: Inter-process communication between Electron and React
-- **Authentication**: Session-based authentication with secure storage
+- **Authentication**: Expiring sessions encrypted with Electron `safeStorage`; the renderer cannot read or replace credentials
 - **Audio Streaming**: Direct integration with Storytel's streaming API
 - **Logging**: In-memory and file-based (app.log in the config directory) logging of system events and HTTP traffic
 
@@ -85,10 +85,6 @@ brew install --cask storytel-player
 
 #### Direct Download
 
-When you install storytel-player on macOS, you need to allow accessibility access (Privacy & Security) to the storytel-player app.
-
-If you are upgrading and you already have storytel-player on the allowed list you will need to manually remove them before accessibility access can be granted to the new version.
-
 macOS users who download directly from releases may need to run:
 
 ```bash
@@ -107,12 +103,11 @@ yay -S storytel-player-bin
 
 ### Automatic Updates
 
-Storytel Player checks for updates automatically on startup. When a new version is available, a notification will appear, allowing you to download and install the update seamlessly.
+Automatic updates are disabled by default in this hardened fork because personal Windows builds are unsigned. Install reviewed builds manually. Release maintainers with signed artifacts can explicitly enable update checks by launching with `STORYTEL_ENABLE_AUTO_UPDATES=true`; Windows update signature verification remains enabled.
 
 ### Manual Updates
 
-You can also manually check for updates or download the latest version directly from the [Releases page](https://github.com/debba/storytel-player/releases).
-```
+Build from the reviewed source or download a release from this fork's Releases page and verify its published checksum before installing.
 
 ## Development
 

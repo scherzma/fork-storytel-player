@@ -18,7 +18,9 @@ export interface SsoLoginResult {
 
 const STORYTEL_LOGIN_URL = 'https://www.storytel.com/it/login';
 const STORYTEL_HOST = 'storytel.com';
-const SSO_PARTITION = 'persist:storytel-sso';
+// Keep OAuth provider cookies in memory rather than persisting Google/Apple
+// sessions inside this third-party client.
+const SSO_PARTITION = 'storytel-sso';
 // Any page on www.storytel.com works for reading the Firebase IndexedDB; we
 // pick the locale root because it always exists (no 404 redirect).
 const STORYTEL_WWW_STORAGE_TARGET = 'https://www.storytel.com/it/';
@@ -289,7 +291,7 @@ export class SsoManager {
         if (inCaptureFlow) return;
         try {
           const parsed = new URL(url);
-          if (!parsed.hostname.endsWith(STORYTEL_HOST)) return;
+          if (parsed.hostname !== STORYTEL_HOST && !parsed.hostname.endsWith(`.${STORYTEL_HOST}`)) return;
           if (FIREBASE_AUTH_PATH.test(parsed.pathname)) return;
           if (LOGIN_PATH.test(parsed.pathname)) return;
           scheduleCapture();

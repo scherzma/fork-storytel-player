@@ -1,6 +1,6 @@
 {
   "name": "storytel-player",
-  "version": "1.2.16",
+  "version": "1.2.19",
   "email": "andrea@debbaweb.it",
   "description": "Storytel Unofficial Player - Storytel audiobook player for desktop",
   "main": "dist/electron/main.js",
@@ -14,7 +14,8 @@
     "dev": "concurrently \"npm run server:dev\" \"npm run client\"",
     "server:dev": "cd server && npm install && npm run dev",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "ci:install-all": "npm ci && npm ci --prefix server && npm ci --prefix client",
+    "test": "npm run test --prefix server",
     "electron:build": "tsc -p tsconfig.electron.json",
     "electron": "npm run electron:build && electron .",
     "electron:dev": "npm run server:build && npm run electron:build && NODE_ENV=development electron .",
@@ -59,7 +60,7 @@
     "concurrently": "^7.6.0",
     "conventional-changelog": "^7.2.0",
     "conventional-changelog-angular": "^8.3.1",
-    "electron": "^40.4.1",
+    "electron": "^40.10.6",
     "electron-builder": "^26.7.0",
     "typescript": "^5.9.3"
   },
@@ -96,7 +97,7 @@
     },
     "win": {
       "target": "nsis",
-      "verifyUpdateCodeSignature": false,
+      "verifyUpdateCodeSignature": true,
       "publish": {
         "provider": "github",
         "releaseType": "draft"

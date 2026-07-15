@@ -15,6 +15,7 @@ import storage from "./utils/storage";
 import BookView from "./components/BookView";
 import WelcomeModal from "./components/WelcomeModal";
 import LogsModal from "./components/LogsModal";
+import Discover from "./components/Discover";
 
 const useMemoryRouter =
   import.meta.env.VITE_REACT_APP_USE_MEMORY_ROUTER === "true";
@@ -64,16 +65,6 @@ function App() {
 
   const checkAuthStatus = async () => {
     try {
-      const token = await storage.get("token");
-      if (!token) {
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        if (window.trayControls?.updateAuthState) {
-          window.trayControls.updateAuthState(false);
-        }
-        return;
-      }
-
       const response = await api.get("/auth/status");
       const authenticated = response.data.authenticated;
       setIsAuthenticated(authenticated);
@@ -132,15 +123,15 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">{t("common.loading")}</div>
+      <div className="min-h-screen bg-[#0d0e11] flex items-center justify-center">
+        <div className="text-lg font-semibold text-white/60">{t("common.loading")}</div>
       </div>
     );
   }
 
   return (
     <Router>
-      <div className="scrollable in-h-screen bg-gray-100">
+      <div className="scrollable min-h-screen bg-[#0d0e11]">
         <Routes>
           <Route
             path="/login"
@@ -157,6 +148,20 @@ function App() {
             element={
               isAuthenticated ? (
                 <Dashboard
+                  onLogout={handleLogout}
+                  triggerLogout={triggerLogout}
+                  setTriggerLogout={setTriggerLogout}
+                />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/discover"
+            element={
+              isAuthenticated ? (
+                <Discover
                   onLogout={handleLogout}
                   triggerLogout={triggerLogout}
                   setTriggerLogout={setTriggerLogout}

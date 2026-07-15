@@ -13,6 +13,14 @@
     }
   },
   "dashboard": {
+    "eyebrow": "Tus audiolibros",
+    "subtitle": "{{count}} audiolibros guardados y listos para escuchar.",
+    "findBooks": "Buscar libros nuevos",
+    "browseCatalog": "Explorar el catálogo",
+    "filterLabel": "Filtrar biblioteca",
+    "noMatches": "Nada coincide con estos filtros",
+    "noMatchesHint": "Prueba otra búsqueda o muestra todos tus libros.",
+    "clearFilters": "Borrar filtros",
     "title": "Mi Biblioteca",
     "logout": "Cerrar sesión",
     "settings": "Configuración",
@@ -22,10 +30,39 @@
     "loading": "Cargando tu biblioteca...",
     "loadError": "Error al cargar la biblioteca",
     "filters": {
+      "all": "Todos",
       "notStarted": "No empezado",
       "started": "Empezado",
       "concluded": "Terminado"
     }
+  },
+  "navigation": {
+    "main": "Navegación principal",
+    "library": "Biblioteca",
+    "discover": "Descubrir"
+  },
+  "discover": {
+    "eyebrow": "Explora Storytel",
+    "resultsEyebrow": "Resultados de búsqueda",
+    "saveHint": "Usa el marcador para añadir un libro a tu biblioteca de Storytel.",
+    "save": "Guardar {{title}} en tu biblioteca",
+    "remove": "Eliminar {{title}} de tu biblioteca",
+    "saveShort": "Guardar",
+    "saved": "Guardado",
+    "saveSuccess": "“{{title}}” se ha añadido a tu biblioteca.",
+    "removeSuccess": "“{{title}}” se ha eliminado de tu biblioteca.",
+    "saveError": "Storytel no pudo actualizar tu biblioteca. Inténtalo de nuevo.",
+    "title": "Descubrir libros",
+    "subtitle": "Busca en el catálogo de Storytel por título, autor o narrador.",
+    "placeholder": "Título, autor o narrador",
+    "search": "Buscar",
+    "searching": "Buscando...",
+    "prompt": "Encuentra tu próximo audiolibro",
+    "promptDescription": "Introduce al menos dos caracteres para buscar en el catálogo.",
+    "noResults": "No se encontraron audiolibros coincidentes.",
+    "searchError": "La búsqueda en el catálogo ha fallado. Inténtalo de nuevo.",
+    "queryTooShort": "Introduce al menos dos caracteres.",
+    "results": "{{count}} audiolibros encontrados"
   },
   "player": {
     "chapters": "Capítulos",
@@ -78,6 +115,9 @@
     "close": "Cerrar"
   },
   "bookCard": {
+    "open": "Abrir {{title}}",
+    "unknownAuthor": "Autor desconocido",
+    "timeRemaining": "Quedan {{time}}",
     "completed": "Completado",
     "remaining": "restante",
     "author": "Autor:",

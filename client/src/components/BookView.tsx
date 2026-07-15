@@ -20,6 +20,7 @@ function BookView() {
     const [showFullDescription, setShowFullDescription] = useState(false);
 
     const book: BookShelfEntity = location.state?.book;
+    const returnTo: string = location.state?.returnTo || '/';
 
     // description and language are not part of the bookshelf payload; they come
     // from the per-book book-details endpoint, fetched lazily below.
@@ -57,7 +58,7 @@ function BookView() {
     }, [book, i18n.language]);
 
     const handlePlayBook = () => {
-        navigate(`/player/${bookId}`, {state: {book}});
+        navigate(`/player/${bookId}`, {state: {book, returnTo}});
     };
 
     if (isLoading) {
@@ -65,11 +66,11 @@ function BookView() {
     }
 
     if (error) {
-        return <ErrorState error={error} onRetry={() => navigate('/')}/>;
+        return <ErrorState error={error} onRetry={() => navigate(returnTo)}/>;
     }
 
     if (!book) {
-        return <ErrorState error={t('common.error')} onRetry={() => navigate('/')}/>;
+        return <ErrorState error={t('common.error')} onRetry={() => navigate(returnTo)}/>;
     }
 
     const formatDuration = (microseconds: number) => {
@@ -94,7 +95,7 @@ function BookView() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar barTitle={t('bookView.details')} onBackClick={() => navigate('/')}>
+            <Navbar barTitle={t('bookView.details')} onBackClick={() => navigate(returnTo)}>
                 <span>{book.book.name}</span>
             </Navbar>
 
