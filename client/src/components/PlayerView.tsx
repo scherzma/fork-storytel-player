@@ -27,6 +27,7 @@ function PlayerView() {
     const navigate = useNavigate();
 
     const book: BookShelfEntity = location.state?.book;
+    const returnTo: string = location.state?.returnTo || '/';
 
     const [error, setError] = useState('');
     const [isLoadingBookData, setIsLoadingBookData] = useState(true);
@@ -249,7 +250,7 @@ function PlayerView() {
 
     return (
         <div className="min-h-screen bg-black text-white relative">
-            <Navbar barTitle={t('player.nowPlaying')} onBackClick={() => navigate(`/book/${bookId}`, {state: {book}})}>
+            <Navbar barTitle={t('player.nowPlaying')} onBackClick={() => navigate(`/book/${bookId}`, {state: {book, returnTo}})}>
                 <span>{book.book.name}</span>
             </Navbar>
 

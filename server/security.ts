@@ -30,14 +30,34 @@ export function sanitizeLogValue(value: unknown, seen = new WeakSet<object>()): 
 }
 
 export function resolveBookFile(downloadsDirectory: string, bookId: string): string {
-  if (!/^[A-Za-z0-9_-]{1,128}$/.test(bookId)) {
-    throw new Error("Invalid book identifier");
-  }
+  const normalizedBookId = normalizeBookIdentifier(bookId);
 
   const base = path.resolve(downloadsDirectory);
-  const target = path.resolve(base, `${bookId}.mp3`);
+  const target = path.resolve(base, `${normalizedBookId}.mp3`);
   if (path.dirname(target) !== base) {
     throw new Error("Invalid book identifier");
   }
   return target;
+}
+
+export function normalizeBookIdentifier(value: unknown): string {
+  if (typeof value !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(value)) {
+    throw new Error("Invalid book identifier");
+  }
+  return value;
+}
+
+export function normalizeCatalogQuery(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new Error("Invalid catalog query");
+  }
+
+  const normalized = value.normalize("NFKC").trim().replace(/\s+/g, " ");
+  if (normalized.length < 2 || normalized.length > 100) {
+    throw new Error("Invalid catalog query");
+  }
+  if (/[\u0000-\u001F\u007F]/.test(normalized)) {
+    throw new Error("Invalid catalog query");
+  }
+  return normalized;
 }

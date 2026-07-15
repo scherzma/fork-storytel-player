@@ -13,6 +13,14 @@
     }
   },
   "dashboard": {
+    "eyebrow": "Din lyssning",
+    "subtitle": "{{count}} ljudböcker sparade och redo att lyssnas på.",
+    "findBooks": "Hitta nya böcker",
+    "browseCatalog": "Bläddra i katalogen",
+    "filterLabel": "Filtrera biblioteket",
+    "noMatches": "Inget matchar filtren",
+    "noMatchesHint": "Prova en annan sökning eller visa alla böcker.",
+    "clearFilters": "Rensa filter",
     "title": "Mitt bibliotek",
     "logout": "Logga ut",
     "settings": "Inställningar",
@@ -22,10 +30,39 @@
     "loading": "Laddar ditt bibliotek...",
     "loadError": "Kunde inte ladda bokhyllan",
     "filters": {
+      "all": "Alla",
       "notStarted": "Ej påbörjad",
       "started": "Påbörjad",
       "concluded": "Avslutad"
     }
+  },
+  "navigation": {
+    "main": "Huvudnavigering",
+    "library": "Bibliotek",
+    "discover": "Upptäck"
+  },
+  "discover": {
+    "eyebrow": "Utforska Storytel",
+    "resultsEyebrow": "Sökresultat",
+    "saveHint": "Använd bokmärket för att lägga till en bok i ditt Storytel-bibliotek.",
+    "save": "Spara {{title}} i ditt bibliotek",
+    "remove": "Ta bort {{title}} från ditt bibliotek",
+    "saveShort": "Spara",
+    "saved": "Sparad",
+    "saveSuccess": "”{{title}}” lades till i ditt bibliotek.",
+    "removeSuccess": "”{{title}}” togs bort från ditt bibliotek.",
+    "saveError": "Storytel kunde inte uppdatera ditt bibliotek. Försök igen.",
+    "title": "Upptäck böcker",
+    "subtitle": "Sök i Storytels katalog efter titel, författare eller uppläsare.",
+    "placeholder": "Titel, författare eller uppläsare",
+    "search": "Sök",
+    "searching": "Söker...",
+    "prompt": "Hitta din nästa ljudbok",
+    "promptDescription": "Ange minst två tecken för att söka i katalogen.",
+    "noResults": "Inga matchande ljudböcker hittades.",
+    "searchError": "Katalogsökningen misslyckades. Försök igen.",
+    "queryTooShort": "Ange minst två tecken.",
+    "results": "{{count}} ljudböcker hittades"
   },
   "player": {
     "chapters": "Kapitel",
@@ -78,6 +115,9 @@
     "close": "Stäng"
   },
   "bookCard": {
+    "open": "Öppna {{title}}",
+    "unknownAuthor": "Okänd författare",
+    "timeRemaining": "{{time}} kvar",
     "completed": "Slutförd",
     "remaining": "kvar",
     "author": "Författare:",

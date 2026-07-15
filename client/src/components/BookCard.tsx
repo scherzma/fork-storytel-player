@@ -1,78 +1,131 @@
 import React from 'react';
-import {buildCoverUrl, formatMicrosecondsTime, formatTime} from "../utils/helpers";
-import {BookShelfEntity} from "../interfaces/books";
-import {useTranslation} from "react-i18next";
+import {buildCoverUrl, formatMicrosecondsTime} from '../utils/helpers';
+import {BookShelfEntity} from '../interfaces/books';
+import {useTranslation} from 'react-i18next';
 
 interface BookCardProps {
     book: BookShelfEntity;
     onBookSelect: (book: BookShelfEntity) => void;
+    showProgress?: boolean;
+    onSaveChange?: (book: BookShelfEntity, saved: boolean) => void;
+    isSaving?: boolean;
 }
 
-function BookCard({book, onBookSelect}: BookCardProps) {
+function BookCard({
+    book,
+    onBookSelect,
+    showProgress = true,
+    onSaveChange,
+    isSaving = false,
+}: BookCardProps) {
     const {t} = useTranslation();
-
-    const position = book.abookMark ? book.abookMark.pos : 0;
-    const totalDuration = book.abook.time;
-
-    const getCategoryLabel = (book: BookShelfEntity) => {
-        return book.book.category.title;
-    };
-
-    const category = getCategoryLabel(book);
-    const remainingTime = totalDuration - position;
+    const position = Math.max(0, book.abookMark?.pos || 0);
+    const totalDuration = Math.max(0, book.abook?.time || 0);
+    const progress = totalDuration > 0 ? Math.min((position / totalDuration) * 100, 100) : 0;
+    const remainingTime = Math.max(totalDuration - position, 0);
+    const cover = buildCoverUrl(book.book.largeCover || book.book.largeCoverE);
+    const isSaved = Boolean(book.isInLibrary);
+    const statusKey = book.status === 3
+        ? 'dashboard.filters.concluded'
+        : book.status === 2
+            ? 'dashboard.filters.started'
+            : 'dashboard.filters.notStarted';
 
     return (
-
-
-        <div className="border-b border-gray-800 pb-6 relative group">
-            <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0 flex flex-col">
-                    <img
-                        src={buildCoverUrl(book.book.largeCover || book.book.largeCoverE)}
-                        alt={book.book.name}
-                        className="w-32 h-32 object-cover rounded-lg shadow-lg mb-2"
-                    />
-                    <span className="text-white text-sm">{category}</span>
-                </div>
-
-                <div className="flex-1 min-w-0 flex flex-col">
-                    <div className="mb-1">
-                        <h2 className="text-lg font-bold text-white mb-0.5 truncate">{book.book.name}</h2>
-                        <p className="text-sm text-gray-300 mb-0.5 truncate">{t('bookCard.author')} {book.book.authorsAsString}</p>
-                        <p className="text-sm text-gray-300 mb-2 truncate">{t('bookCard.narrator')} {book.abook.narratorAsString}</p>
-                    </div>
-
-                    <div className="mt-auto flex items-center gap-4">
-                        <p className="text-sm text-white whitespace-nowrap">
-                            {remainingTime > 0 ? formatMicrosecondsTime(remainingTime) + ' ' + t('bookCard.remaining') : t('bookCard.completed')}
-                        </p>
-                        {position > 0 && (
-                            <div className="w-[100px] bg-gray-700 rounded-full h-2">
-                                <div
-                                    className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                                    style={{
-                                        width: `${Math.min((position / totalDuration) * 100, 100)}%`
-                                    }}
-                                ></div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div
-                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+        <article
+            className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#17191e]/90 shadow-[0_16px_40px_rgba(0,0,0,0.28)] transition duration-300 hover:-translate-y-1 hover:border-orange-400/40 hover:shadow-[0_20px_48px_rgba(0,0,0,0.42)] focus-within:border-orange-400/60 focus-within:ring-2 focus-within:ring-orange-400/30"
+        >
+            <button
+                type="button"
                 onClick={() => onBookSelect(book)}
-            >
-                <div className="bg-black bg-opacity-75 rounded-full p-4">
-                    <button className="p-4 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
+                className="absolute inset-0 z-[1] cursor-pointer rounded-2xl focus:outline-none"
+                aria-label={t('bookCard.open', {title: book.book.name})}
+            />
+            <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#292c33] to-[#121317]">
+                {cover ? (
+                    <img
+                        src={cover}
+                        alt=""
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center text-white/30" aria-hidden="true">
+                        <svg className="h-14 w-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
                         </svg>
+                    </div>
+                )}
+
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
+                {showProgress && (
+                    <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/65 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
+                        {t(statusKey)}
+                    </span>
+                )}
+                {onSaveChange && (
+                    <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onSaveChange(book, !isSaved);
+                        }}
+                        className={`absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                            isSaved
+                                ? 'border-orange-300/60 bg-orange-500 text-white hover:bg-orange-400'
+                                : 'border-white/20 bg-black/60 text-white hover:border-orange-300/70 hover:bg-black/80'
+                        } disabled:cursor-wait disabled:opacity-60`}
+                        aria-label={t(isSaved ? 'discover.remove' : 'discover.save', {title: book.book.name})}
+                        title={t(isSaved ? 'discover.saved' : 'discover.saveShort')}
+                    >
+                        {isSaving ? (
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                        ) : (
+                            <svg className="h-5 w-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M5 5.75A2.75 2.75 0 0 1 7.75 3h8.5A2.75 2.75 0 0 1 19 5.75V21l-7-4-7 4V5.75Z" />
+                            </svg>
+                        )}
                     </button>
+                )}
+            </div>
+
+            <div className="flex flex-1 flex-col p-4">
+                {book.book.category?.title && (
+                    <p className="mb-2 truncate text-[11px] font-bold uppercase tracking-[0.16em] text-orange-300">
+                        {book.book.category.title}
+                    </p>
+                )}
+                <h2 className="mb-1 min-h-[3rem] overflow-hidden text-base font-bold leading-6 text-white">
+                    {book.book.name}
+                </h2>
+                <p className="mb-4 truncate text-sm text-white/55">
+                    {book.book.authorsAsString || t('bookCard.unknownAuthor')}
+                </p>
+
+                <div className="mt-auto">
+                    {showProgress && progress > 0 && (
+                        <div className="mb-3 h-1 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
+                            <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-300" style={{width: `${progress}%`}} />
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between gap-3">
+                        <span className="truncate text-xs font-medium text-white/50">
+                            {showProgress
+                                ? (remainingTime > 0
+                                    ? t('bookCard.timeRemaining', {time: formatMicrosecondsTime(remainingTime)})
+                                    : t('bookCard.completed'))
+                                : formatMicrosecondsTime(totalDuration)}
+                        </span>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#16171b] transition group-hover:bg-orange-400" aria-hidden="true">
+                            <svg className="ml-0.5 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </article>
     );
 }
 

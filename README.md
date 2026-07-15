@@ -24,7 +24,7 @@ See the [CHANGELOG](CHANGELOG.md) for the full list of changes across all releas
 
 ✅ **Native Desktop App**: Cross-platform application with system tray integration and single instance lock
 
-✅ **Audiobook Library**: Browse your Storytel library with cover art and progress tracking. Supports real-time search by title, author, or narrator (Ctrl/Cmd+K shortcut)
+✅ **Audiobook Library and Discovery**: Browse your Storytel library with cover art and progress tracking, or search the wider Storytel catalog by title, author, or narrator (Ctrl/Cmd+K shortcut)
 
 ✅ **Audio Player**: HTML5 audio player with playback controls and bookmarks
 

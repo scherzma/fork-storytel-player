@@ -70,6 +70,7 @@ interface RawBookshelfModel {
 }
 
 interface RawBookshelfResponse {
+  resourceVersion?: string;
   items?: Record<string, { action: string; model: RawBookshelfModel }>;
   followingItems?: Record<string, unknown>;
   collections?: Record<string, unknown>;
@@ -98,10 +99,56 @@ interface BookShelfEntity {
   } | null;
   abookMark: { pos: number } | null;
   ebook: RawBookshelfFormat | null;
+  isInLibrary?: boolean;
 }
 
 interface BookShelfResponse {
   books: BookShelfEntity[];
+}
+
+interface RawCatalogBook {
+  abook?: {
+    allowedToStream?: boolean;
+    description?: string;
+    display?: boolean;
+    id?: string | number;
+    narratorAsString?: string;
+    time?: number;
+  };
+  abookMark?: { pos?: number } | null;
+  book?: {
+    authorsAsString?: string;
+    category?: { title?: string };
+    consumableId?: string | number;
+    language?: { localizedName?: string };
+    largeCover?: string;
+    largeCoverE?: string;
+    name?: string;
+  };
+  restriction?: number;
+}
+
+interface RawCatalogSearchResponse {
+  books?: RawCatalogBook[];
+}
+
+export function buildBookshelfUpdateRequest(
+  consumableId: string,
+  resourceVersion: string | null,
+  saved: boolean,
+) {
+  return {
+    resourceVersion,
+    items: {
+      [consumableId]: {
+        millisecondsSinceEvent: 0,
+        action: saved ? "SET" : "DELETE",
+        state: saved ? "WILL_CONSUME" : null,
+      },
+    },
+    followingItems: null,
+    collections: null,
+  };
 }
 
 class StorytelClient {
@@ -354,35 +401,21 @@ class StorytelClient {
   }
 
   async getBookshelf(): Promise<BookShelfResponse> {
-    const url = `https://api.storytel.net/libraries/bookshelf`;
-
     try {
-      const bearer = await this.getApiBearer();
-      const response = await this.client.post<RawBookshelfResponse>(
-        url,
-        { items: [] },
-        {
-          headers: {
-            Authorization: `Bearer ${bearer}`,
-            "content-type": "application/x-www-form-urlencoded",
-            Accept: "*/*",
-          },
-        },
-      );
+      const data = await this.getLibrarySnapshot();
 
       // The endpoint returns { items: { "<id>": { action, model } } } with a
       // shape that differs from the legacy getBookShelf.action response. Remap
       // each `model` onto the legacy BookShelfEntity keys so the existing
       // frontend keeps working unchanged.
-      const items = response.data?.items;
+      const items = data?.items;
       if (!items || typeof items !== "object") return { books: [] };
 
-      // Library state -> legacy numeric status (1 = in progress / to read,
-      // 2 = finished). The Dashboard keeps only {1,2} by default.
+      // Library state -> the three states displayed by the desktop client.
       const stateToStatus: Record<string, number> = {
-        CONSUMING: 1,
         WILL_CONSUME: 1,
-        CONSUMED: 2,
+        CONSUMING: 2,
+        CONSUMED: 3,
       };
 
       const books = Object.values(items)
@@ -428,6 +461,7 @@ class StorytelClient {
               ? { pos: (abookFormat.position.position ?? 0) * 1000 }
               : null,
             ebook: ebookFormat ?? null,
+            isInLibrary: true,
           };
         });
 
@@ -436,6 +470,142 @@ class StorytelClient {
       if (error.isStorytelUnauthorized) throw error;
       console.error(error);
       throw new Error(`Failed to get bookshelf: ${error.message}`);
+    }
+  }
+
+  private async getLibrarySnapshot(): Promise<RawBookshelfResponse> {
+    const bearer = await this.getApiBearer();
+    const response = await this.client.post<RawBookshelfResponse>(
+      "https://api.storytel.net/libraries/bookshelf",
+      { items: [] },
+      {
+        headers: {
+          Authorization: `Bearer ${bearer}`,
+          // Storytel's full bookshelf read still expects the legacy form
+          // request. The vendor delta media type is only accepted for writes.
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "*/*",
+        },
+      },
+    );
+    return response.data;
+  }
+
+  async setBookshelfSaved(consumableId: string, saved: boolean): Promise<void> {
+    const url = "https://api.storytel.net/libraries/bookshelf";
+
+    try {
+      // Storytel rejects stale resource versions. Refresh and retry once if
+      // another device changes the bookshelf between our read and write.
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const snapshot = await this.getLibrarySnapshot();
+        const alreadySaved = Boolean(snapshot.items?.[consumableId]?.model);
+        if (alreadySaved === saved) return;
+
+        try {
+          const bearer = await this.getApiBearer();
+          await this.client.post(
+            url,
+            buildBookshelfUpdateRequest(
+              consumableId,
+              snapshot.resourceVersion ?? null,
+              saved,
+            ),
+            {
+              headers: {
+                Authorization: `Bearer ${bearer}`,
+                "Content-Type": "application/json",
+                Accept: "application/vnd.storytel.library-delta+json;v=1.4",
+              },
+            },
+          );
+          return;
+        } catch (error: any) {
+          if (error.response?.status !== 409 || attempt === 1) throw error;
+        }
+      }
+    } catch (error: any) {
+      if (error.isStorytelUnauthorized) throw error;
+      throw new Error(`Failed to update bookshelf: ${error.message}`);
+    }
+  }
+
+  async searchCatalog(query: string): Promise<BookShelfResponse> {
+    const url = "https://www.storytel.com/api/search.action";
+
+    try {
+      const response = await this.client.get<RawCatalogSearchResponse>(url, {
+        params: {
+          q: query,
+          token: this.getLegacyActionToken(),
+        },
+      });
+
+      const rawBooks = Array.isArray(response.data?.books)
+        ? response.data.books
+        : [];
+      const text = (value: unknown, maxLength = 500): string =>
+        typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+      const identifier = (value: unknown): string => {
+        const candidate = String(value ?? "");
+        return /^[A-Za-z0-9_-]{1,128}$/.test(candidate) ? candidate : "";
+      };
+      const nonNegativeNumber = (value: unknown): number => {
+        const candidate = Number(value);
+        return Number.isFinite(candidate) && candidate >= 0 ? candidate : 0;
+      };
+
+      const books = rawBooks.slice(0, 100).flatMap((entry) => {
+        const rawBook = entry?.book;
+        const rawAudio = entry?.abook;
+        const consumableId = identifier(rawBook?.consumableId);
+        const audioId = identifier(rawAudio?.id);
+        const title = text(rawBook?.name);
+        if (
+          !rawBook ||
+          !rawAudio ||
+          !consumableId ||
+          !audioId ||
+          !title ||
+          rawAudio.allowedToStream === false ||
+          rawAudio.display === false ||
+          entry.restriction === 1
+        ) {
+          return [];
+        }
+
+        const book: BookShelfEntity = {
+          id: consumableId,
+          status: 1,
+          book: {
+            name: title,
+            authorsAsString: text(rawBook.authorsAsString),
+            consumableId,
+            largeCover: text(rawBook.largeCover, 2048),
+            largeCoverE: text(rawBook.largeCoverE, 2048),
+            category: { title: text(rawBook.category?.title) },
+            language: {
+              localizedName: text(rawBook.language?.localizedName),
+            },
+          },
+          abook: {
+            id: audioId,
+            narratorAsString: text(rawAudio.narratorAsString),
+            time: nonNegativeNumber(rawAudio.time),
+            description: text(rawAudio.description, 5000),
+          },
+          abookMark: entry.abookMark
+            ? { pos: nonNegativeNumber(entry.abookMark.pos) }
+            : null,
+          ebook: null,
+        };
+        return [book];
+      });
+
+      return { books };
+    } catch (error: any) {
+      if (error.isStorytelUnauthorized) throw error;
+      throw new Error(`Failed to search catalog: ${error.message}`);
     }
   }
 

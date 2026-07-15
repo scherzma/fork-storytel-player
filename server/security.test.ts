@@ -4,7 +4,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { resolveBookFile, sanitizeLogText, sanitizeLogValue } from './security';
+import {
+  normalizeBookIdentifier,
+  normalizeCatalogQuery,
+  resolveBookFile,
+  sanitizeLogText,
+  sanitizeLogValue,
+} from './security';
 
 function encode(value: unknown): string {
   return Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -43,6 +49,21 @@ test('download file resolver rejects traversal and unsafe identifiers', () => {
   );
   assert.throws(() => resolveBookFile(downloads, '../secrets'), /Invalid book identifier/);
   assert.throws(() => resolveBookFile(downloads, '..%2fsecrets'), /Invalid book identifier/);
+});
+
+test('catalog queries are normalized and bounded', () => {
+  assert.equal(normalizeCatalogQuery('  Harry   Potter  '), 'Harry Potter');
+  assert.throws(() => normalizeCatalogQuery('a'), /Invalid catalog query/);
+  assert.throws(() => normalizeCatalogQuery('x'.repeat(101)), /Invalid catalog query/);
+  assert.throws(() => normalizeCatalogQuery(undefined), /Invalid catalog query/);
+});
+
+test('book identifiers are restricted to Storytel-safe path characters', () => {
+  assert.equal(normalizeBookIdentifier('book_123-abc'), 'book_123-abc');
+  assert.throws(() => normalizeBookIdentifier('../book'), /Invalid book identifier/);
+  assert.throws(() => normalizeBookIdentifier('book/child'), /Invalid book identifier/);
+  assert.throws(() => normalizeBookIdentifier(''), /Invalid book identifier/);
+  assert.throws(() => normalizeBookIdentifier(123), /Invalid book identifier/);
 });
 
 test('the historical public JWT secret no longer authenticates', async () => {

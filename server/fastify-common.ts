@@ -8,7 +8,11 @@ import fs from "fs";
 import path from "path";
 import axios from "axios";
 import { appLogger } from "./logger";
-import { resolveBookFile } from "./security";
+import {
+  normalizeBookIdentifier,
+  normalizeCatalogQuery,
+  resolveBookFile,
+} from "./security";
 
 // Extend JWT user type. Legacy (email/password) login populates storytelToken
 // and jwt; SSO login populates the sso* fields instead and leaves the legacy
@@ -218,6 +222,69 @@ fastify.get(
 
       const bookshelf = await storytelClient.getBookshelf();
       reply.send(bookshelf);
+    } catch (error: any) {
+      replyError(reply, error);
+    }
+  },
+);
+
+fastify.get<{
+  Querystring: { q?: string };
+}>(
+  "/api/catalog/search",
+  {
+    preHandler: fastify.authenticate,
+  },
+  async (request, reply) => {
+    let query: string;
+    try {
+      query = normalizeCatalogQuery(request.query.q);
+    } catch {
+      return reply.code(400).send({ error: "Invalid catalog query" });
+    }
+
+    try {
+      const storytelClient = hydrateStorytelClient(request.user);
+      const [results, bookshelf] = await Promise.all([
+        storytelClient.searchCatalog(query),
+        storytelClient.getBookshelf(),
+      ]);
+      const savedIds = new Set(
+        bookshelf.books.map((book) => String(book.book.consumableId)),
+      );
+      for (const book of results.books) {
+        book.isInLibrary = savedIds.has(String(book.book.consumableId));
+      }
+      reply.send(results);
+    } catch (error: any) {
+      replyError(reply, error);
+    }
+  },
+);
+
+fastify.put<{
+  Params: { consumableId: string };
+  Body: { saved?: unknown };
+}>(
+  "/api/bookshelf/:consumableId",
+  {
+    preHandler: fastify.authenticate,
+  },
+  async (request, reply) => {
+    let consumableId: string;
+    try {
+      consumableId = normalizeBookIdentifier(request.params.consumableId);
+    } catch {
+      return reply.code(400).send({ error: "Invalid book identifier" });
+    }
+    if (typeof request.body?.saved !== "boolean") {
+      return reply.code(400).send({ error: "Invalid bookshelf state" });
+    }
+
+    try {
+      const storytelClient = hydrateStorytelClient(request.user);
+      await storytelClient.setBookshelfSaved(consumableId, request.body.saved);
+      reply.send({ success: true, saved: request.body.saved });
     } catch (error: any) {
       replyError(reply, error);
     }

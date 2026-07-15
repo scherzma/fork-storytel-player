@@ -18,6 +18,14 @@
   },
   "dashboard": {
     "title": "La mia libreria",
+    "eyebrow": "I tuoi ascolti",
+    "subtitle": "{{count}} audiolibri salvati e pronti per te.",
+    "findBooks": "Trova nuovi libri",
+    "browseCatalog": "Sfoglia il catalogo",
+    "filterLabel": "Filtra la libreria",
+    "noMatches": "Nessun risultato con questi filtri",
+    "noMatchesHint": "Prova un'altra ricerca o mostra tutti i libri.",
+    "clearFilters": "Azzera filtri",
     "logout": "Esci",
     "settings": "Impostazioni",
     "search": "Cerca libri...",
@@ -26,10 +34,39 @@
     "loading": "Caricamento della tua libreria...",
     "loadError": "Impossibile caricare la libreria",
     "filters": {
+      "all": "Tutti",
       "notStarted": "Non iniziati",
       "started": "In corso",
       "concluded": "Conclusi"
     }
+  },
+  "navigation": {
+    "main": "Navigazione principale",
+    "library": "Libreria",
+    "discover": "Scopri"
+  },
+  "discover": {
+    "title": "Scopri libri",
+    "eyebrow": "Esplora Storytel",
+    "subtitle": "Cerca nel catalogo Storytel per titolo, autore o narratore.",
+    "placeholder": "Titolo, autore o narratore",
+    "search": "Cerca",
+    "searching": "Ricerca in corso...",
+    "prompt": "Trova il tuo prossimo audiolibro",
+    "promptDescription": "Inserisci almeno due caratteri per cercare nel catalogo.",
+    "noResults": "Nessun audiolibro corrispondente trovato.",
+    "searchError": "La ricerca nel catalogo non è riuscita. Riprova.",
+    "queryTooShort": "Inserisci almeno due caratteri.",
+    "results": "{{count}} audiolibri trovati",
+    "resultsEyebrow": "Risultati della ricerca",
+    "saveHint": "Usa il segnalibro per aggiungere un libro alla tua libreria Storytel.",
+    "save": "Salva {{title}} nella tua libreria",
+    "remove": "Rimuovi {{title}} dalla tua libreria",
+    "saveShort": "Salva",
+    "saved": "Salvato",
+    "saveSuccess": "“{{title}}” è stato aggiunto alla tua libreria.",
+    "removeSuccess": "“{{title}}” è stato rimosso dalla tua libreria.",
+    "saveError": "Storytel non ha potuto aggiornare la libreria. Riprova."
   },
   "player": {
     "chapters": "Capitoli",
@@ -82,6 +119,9 @@
     "close": "Chiudi"
   },
   "bookCard": {
+    "open": "Apri {{title}}",
+    "unknownAuthor": "Autore sconosciuto",
+    "timeRemaining": "{{time}} rimanenti",
     "completed": "Completato",
     "remaining": "rimanenti",
     "author": "Autore:",

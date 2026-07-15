@@ -5,7 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "start": "node dist/server.js",
-    "test": "tsx --test security.test.ts",
+    "test": "tsx --test *.test.ts",
     "dev": "tsx watch server.ts",
     "build": "tsx build.ts",
     "build:prod": "NODE_ENV=production tsx build.ts",

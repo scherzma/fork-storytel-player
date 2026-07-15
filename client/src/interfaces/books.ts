@@ -19,6 +19,7 @@ export interface BookShelfEntity {
     restriction: number
     shareUrl: string
     status: number
+    isInLibrary?: boolean
     subscribesToSerie: number
 }
 
