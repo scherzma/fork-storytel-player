@@ -134,7 +134,7 @@ function InlineReadAlong({
                             )}
                         </div>
                     ) : (
-                        <div className="mx-auto max-w-4xl text-center text-[clamp(1.35rem,2.1vw,2rem)] font-medium leading-[1.85] tracking-[-0.015em]" role="region">
+                        <div className="mx-auto max-w-4xl text-center text-[clamp(1rem,1.35vw,1.35rem)] font-medium leading-[1.9] tracking-[-0.01em]" role="region">
                             {segments.map(segment => (
                                 <React.Fragment key={segment.id}>
                                     {segment.words.length > 0 ? segment.words.map(renderWord) : (

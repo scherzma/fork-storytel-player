@@ -305,7 +305,7 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                     onShowGotoModal={gotoModal.openModal}
                     onShowPlaybackSpeedModal={() => setShowPlaybackSpeedModal(true)}
                     onShowHistory={() => setShowListeningHistory(true)}
-                    onShowTranscription={toggleReadAlong}
+                    onToggleReadAlong={toggleReadAlong}
                     isTranscribing={transcription.isEnabled}
                     isReadAlongView={showReadAlong}
                 />

@@ -18,8 +18,6 @@ function CompactPlayer() {
         playbackRate,
         setPlaybackRate,
         openExpandedPlayer,
-        openTranscription,
-        transcription,
         audio,
     } = usePlayer();
     const [showHistory, setShowHistory] = useState(false);
@@ -109,7 +107,7 @@ function CompactPlayer() {
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
                     </button>
                     <div className="md:hidden">
-                        <PlayerMoreMenu historyCount={audio.history.length} isTranscribing={transcription.isEnabled} onShowHistory={() => setShowHistory(true)} onShowTranscription={openTranscription}/>
+                        <PlayerMoreMenu historyCount={audio.history.length} onShowHistory={() => setShowHistory(true)}/>
                     </div>
                 </div>
 
@@ -147,7 +145,7 @@ function CompactPlayer() {
                             className="slider w-20 xl:w-24"
                         />
                     </div>
-                    <PlayerMoreMenu historyCount={audio.history.length} isTranscribing={transcription.isEnabled} onShowHistory={() => setShowHistory(true)} onShowTranscription={openTranscription}/>
+                    <PlayerMoreMenu historyCount={audio.history.length} onShowHistory={() => setShowHistory(true)}/>
                     <button data-testid="open-full-player" type="button" onClick={openExpandedPlayer} aria-label={t('player.openFullPlayer')} title={t('player.openFullPlayer')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
                     </button>

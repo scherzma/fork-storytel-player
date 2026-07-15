@@ -24,7 +24,7 @@ interface PlayerControlsProps {
     onShowGotoModal: () => void;
     onShowPlaybackSpeedModal: () => void;
     onShowHistory: () => void;
-    onShowTranscription: () => void;
+    onToggleReadAlong: () => void;
     isTranscribing: boolean;
     isReadAlongView?: boolean;
 }
@@ -48,7 +48,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     onShowGotoModal,
     onShowPlaybackSpeedModal,
     onShowHistory,
-    onShowTranscription,
+    onToggleReadAlong,
     isTranscribing,
     isReadAlongView = false,
 }) => {
@@ -103,7 +103,19 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
                     <button onClick={onShowGotoModal} className={`${pillButton} hidden sm:flex`}>
                         {t('gotoModal.go')}
                     </button>
-                    <PlayerMoreMenu historyCount={history.length} isTranscribing={isTranscribing} isReadAlongView={isReadAlongView} onShowHistory={onShowHistory} onShowTranscription={onShowTranscription}/>
+                    <button
+                        type="button"
+                        onClick={onToggleReadAlong}
+                        aria-label={t(isReadAlongView ? 'transcription.coverView' : 'transcription.shortTitle')}
+                        aria-pressed={isReadAlongView}
+                        title={t(isReadAlongView ? 'transcription.coverView' : 'transcription.shortTitle')}
+                        className={`${pillButton} relative ${isReadAlongView ? 'border-orange-400/30 bg-orange-500/10 text-orange-200' : ''}`}
+                    >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 6h16M4 12h10M4 18h13"/></svg>
+                        <span className="hidden md:inline">{t(isReadAlongView ? 'transcription.coverView' : 'transcription.shortTitle')}</span>
+                        {isTranscribing && !isReadAlongView && <span className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full bg-orange-300"/>}
+                    </button>
+                    <PlayerMoreMenu historyCount={history.length} onShowHistory={onShowHistory}/>
                 </div>
 
                 {/* Center controls */}
@@ -146,45 +158,28 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
                 </div>
 
                 {/* Right side - Volume */}
-                <div className="flex flex-1 items-center justify-end">
-                    <div className="group relative">
-                        <button
-                            onClick={onToggleMute}
-                            aria-label={t('player.volume')}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg text-white/50 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
-                        >
-                            {isMuted || volume === 0 ? (
-                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-                                </svg>
-                            ) : (
-                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                                </svg>
-                            )}
-                        </button>
-                        {/* Vertical volume slider on hover */}
-                        <div
-                            className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 pb-2 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                            <div className="rounded-xl border border-white/10 bg-[#1d2026] p-2.5 shadow-2xl">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={volume}
-                                    onChange={handleVolumeChange}
-                                    aria-label={t('player.volume')}
-                                    className="h-24 w-2 cursor-pointer appearance-none rounded-lg bg-white/15"
-                                    style={{
-                                        WebkitAppearance: 'slider-vertical'
-                                    } as React.CSSProperties}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                    <button
+                        onClick={onToggleMute}
+                        aria-label={t('player.volume')}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white/50 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    >
+                        {isMuted || volume === 0 ? (
+                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"/></svg>
+                        ) : (
+                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                        )}
+                    </button>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={isMuted ? 0 : volume}
+                        onChange={handleVolumeChange}
+                        aria-label={t('player.volume')}
+                        className="slider hidden w-24 sm:block lg:w-32"
+                    />
                 </div>
             </div>
         </div>

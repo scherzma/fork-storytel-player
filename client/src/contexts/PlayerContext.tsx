@@ -3,7 +3,6 @@ import {BookShelfEntity} from '../interfaces/books';
 import {useAudioPlayer} from '../hooks/useAudioPlayer';
 import {useLiveTranscription} from '../hooks/useLiveTranscription';
 import storage from '../utils/storage';
-import TranscriptionPanel from '../components/TranscriptionPanel';
 
 const TRANSCRIPTION_LEAD_SECONDS = 8;
 
@@ -15,7 +14,6 @@ interface PlayerContextValue {
     setPlaybackRate: (rate: number) => void;
     openExpandedPlayer: () => void;
     closeExpandedPlayer: () => void;
-    openTranscription: () => void;
     playerError: string;
     clearPlayerError: () => void;
     startPlayback: (book: BookShelfEntity, bookId: string) => void;
@@ -30,7 +28,6 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
     const [activeBookId, setActiveBookId] = useState<string | null>(null);
     const [playbackRate, setPlaybackRateState] = useState(1);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [showTranscription, setShowTranscription] = useState(false);
     const [playerError, setPlayerError] = useState('');
     const transcriptionAudioRef = useRef<HTMLAudioElement>(null);
     const handleLoadError = useCallback((message: string) => setPlayerError(message), []);
@@ -83,7 +80,6 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
         setActiveBook(null);
         setActiveBookId(null);
         setIsExpanded(false);
-        setShowTranscription(false);
         transcription.stop();
         window.trayControls?.updatePlayingState?.(false, null);
     }, [enabled, audio.audioRef, transcription.stop]);
@@ -193,7 +189,6 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
         setPlaybackRate,
         openExpandedPlayer,
         closeExpandedPlayer,
-        openTranscription: () => setShowTranscription(true),
         playerError,
         clearPlayerError: () => setPlayerError(''),
         startPlayback,
@@ -222,19 +217,6 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
                 preload="auto"
                 onError={transcription.reportSourceError}
                 className="hidden"
-            />
-            <TranscriptionPanel
-                isOpen={showTranscription}
-                status={transcription.status}
-                progress={transcription.progress}
-                segments={transcription.segments}
-                isEnabled={transcription.isEnabled}
-                currentTime={audio.currentTime}
-                onStart={transcription.start}
-                onStop={transcription.stop}
-                onClear={transcription.clear}
-                onSeek={time => audio.handleSeek(time, 'seek')}
-                onClose={() => setShowTranscription(false)}
             />
         </PlayerContext.Provider>
     );
