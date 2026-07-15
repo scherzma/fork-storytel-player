@@ -7,7 +7,6 @@ import ListeningHistoryMarkers from './ListeningHistoryMarkers';
 import ListeningHistoryModal from './ListeningHistoryModal';
 import ExternalProgressNotice from './ExternalProgressNotice';
 import PlaybackSpeedModal from './PlaybackSpeedModal';
-import PlayerMoreMenu from './PlayerMoreMenu';
 
 function CompactPlayer() {
     const {t} = useTranslation();
@@ -106,9 +105,10 @@ function CompactPlayer() {
                     <button data-testid="open-full-player-mobile" type="button" onClick={openExpandedPlayer} aria-label={t('player.openFullPlayer')} title={t('player.openFullPlayer')} className="ml-1 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white md:hidden">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
                     </button>
-                    <div className="md:hidden">
-                        <PlayerMoreMenu historyCount={audio.history.length} onShowHistory={() => setShowHistory(true)}/>
-                    </div>
+                    <button type="button" onClick={() => setShowHistory(true)} aria-label={t('listeningHistory.open')} title={t('listeningHistory.open')} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white md:hidden">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
+                        {audio.history.length > 0 && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-orange-300"/>}
+                    </button>
                 </div>
 
                 <div className="hidden min-w-0 items-center justify-end gap-3 md:flex">
@@ -145,7 +145,10 @@ function CompactPlayer() {
                             className="slider w-20 xl:w-24"
                         />
                     </div>
-                    <PlayerMoreMenu historyCount={audio.history.length} onShowHistory={() => setShowHistory(true)}/>
+                    <button type="button" onClick={() => setShowHistory(true)} aria-label={t('listeningHistory.open')} title={t('listeningHistory.open')} className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
+                        {audio.history.length > 0 && <span className={`absolute right-1 top-1 h-1.5 w-1.5 rounded-full ${audio.externalSyncEntry ? 'bg-sky-300' : 'bg-orange-300'}`}/>}
+                    </button>
                     <button data-testid="open-full-player" type="button" onClick={openExpandedPlayer} aria-label={t('player.openFullPlayer')} title={t('player.openFullPlayer')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
                     </button>

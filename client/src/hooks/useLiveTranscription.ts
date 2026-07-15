@@ -80,6 +80,7 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
             audio: queued.audio,
             language: languageRef.current,
             discardBeforeSeconds: queued.discardBeforeSeconds,
+            playbackRate: queued.playbackRate,
         }, [queued.audio.buffer]);
     }, []);
 
@@ -108,7 +109,7 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
             endTime,
             sessionId: sessionRef.current,
             playbackRate,
-            discardBeforeSeconds: hasQueuedWindowRef.current ? OVERLAP_SECONDS : 0,
+            discardBeforeSeconds: hasQueuedWindowRef.current ? OVERLAP_SECONDS * playbackRate : 0,
         };
         captureStartTimeRef.current = startTime + (WINDOW_SECONDS - OVERLAP_SECONDS) * playbackRate;
         hasQueuedWindowRef.current = true;
@@ -186,8 +187,8 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
                     const mappedWords = (message.words || []).map((word, index) => ({
                         id: `${segmentId}-${index}`,
                         text: word.text,
-                        startTime: request.startTime + word.startTime * request.playbackRate,
-                        endTime: request.startTime + word.endTime * request.playbackRate,
+                        startTime: request.startTime + word.startTime,
+                        endTime: request.startTime + word.endTime,
                     }));
                     setSegments(previous => {
                         const latestWord = previous.at(-1)?.words.at(-1);
@@ -196,7 +197,7 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
                             : mappedWords;
                         const segmentText = words.length > 0 ? words.map(word => word.text).join('').trim() : text;
                         if (!segmentText) return previous;
-                        const startTime = words[0]?.startTime ?? request.startTime + request.discardBeforeSeconds * request.playbackRate;
+                        const startTime = words[0]?.startTime ?? request.startTime + request.discardBeforeSeconds;
                         const endTime = words.at(-1)?.endTime ?? request.endTime;
                         return [...previous, {id: segmentId, text: segmentText, startTime, endTime, words}]
                             .slice(-MAX_TRANSCRIPT_SEGMENTS);
@@ -252,17 +253,19 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
         const handlePause = () => {
             if (enabledRef.current && !activeRequestRef.current) setStatus('ready');
         };
-        const handleSeek = () => {
+        const handleTimelineChange = () => {
             sessionRef.current += 1;
             resetCaptureBuffer();
         };
         element.addEventListener('play', handlePlay);
         element.addEventListener('pause', handlePause);
-        element.addEventListener('seeking', handleSeek);
+        element.addEventListener('seeking', handleTimelineChange);
+        element.addEventListener('ratechange', handleTimelineChange);
         return () => {
             element.removeEventListener('play', handlePlay);
             element.removeEventListener('pause', handlePause);
-            element.removeEventListener('seeking', handleSeek);
+            element.removeEventListener('seeking', handleTimelineChange);
+            element.removeEventListener('ratechange', handleTimelineChange);
         };
     }, [audioRef, resetCaptureBuffer, startCapture]);
 

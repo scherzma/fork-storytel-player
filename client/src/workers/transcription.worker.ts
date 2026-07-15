@@ -78,16 +78,31 @@ const approximateWordTimestamps = (text: string, duration: number) => {
     }));
 };
 
-const transcribe = async (audio: Float32Array, language?: string, discardBeforeSeconds = 0) => {
+const restoreNaturalPlaybackSpeed = (audio: Float32Array, playbackRate: number) => {
+    if (!Number.isFinite(playbackRate) || Math.abs(playbackRate - 1) < 0.01) return audio;
+    const safeRate = Math.max(0.5, Math.min(2, playbackRate));
+    const restored = new Float32Array(Math.max(1, Math.round(audio.length * safeRate)));
+    for (let index = 0; index < restored.length; index += 1) {
+        const sourcePosition = index / safeRate;
+        const leftIndex = Math.min(audio.length - 1, Math.floor(sourcePosition));
+        const rightIndex = Math.min(audio.length - 1, leftIndex + 1);
+        const fraction = sourcePosition - leftIndex;
+        restored[index] = audio[leftIndex] * (1 - fraction) + audio[rightIndex] * fraction;
+    }
+    return restored;
+};
+
+const transcribe = async (audio: Float32Array, language?: string, discardBeforeSeconds = 0, playbackRate = 1) => {
     if (isProcessing) return;
     isProcessing = true;
     send({status: 'start'});
     try {
         const transcriber = await getTranscriber();
+        const normalizedAudio = restoreNaturalPlaybackSpeed(audio, playbackRate);
         let first: AsrResult;
         let timestampedChunks: TimestampChunk[] = [];
         try {
-            const result = await transcriber(audio, {
+            const result = await transcriber(normalizedAudio, {
                 task: 'transcribe',
                 return_timestamps: 'word',
                 ...(language ? {language} : {}),
@@ -96,7 +111,7 @@ const transcribe = async (audio: Float32Array, language?: string, discardBeforeS
             timestampedChunks = first?.chunks || [];
         } catch (timestampError) {
             console.warn('Word timestamps are unavailable; continuing with approximate timing', timestampError);
-            const result = await transcriber(audio, {
+            const result = await transcriber(normalizedAudio, {
                 task: 'transcribe',
                 ...(language ? {language} : {}),
             });
@@ -108,7 +123,7 @@ const transcribe = async (audio: Float32Array, language?: string, discardBeforeS
                 startTime: chunk.timestamp[0],
                 endTime: chunk.timestamp[1],
             }))
-            : approximateWordTimestamps(first?.text || '', audio.length / SAMPLE_RATE);
+            : approximateWordTimestamps(first?.text || '', normalizedAudio.length / SAMPLE_RATE);
         const words = rawWords.filter(word => word.startTime >= Math.max(0, discardBeforeSeconds - 0.08));
         const output = words.length > 0
             ? words.map(word => word.text).join('').trim()
@@ -122,14 +137,15 @@ const transcribe = async (audio: Float32Array, language?: string, discardBeforeS
 };
 
 self.addEventListener('message', event => {
-    const {type, audio, language, discardBeforeSeconds} = event.data as {
+    const {type, audio, language, discardBeforeSeconds, playbackRate} = event.data as {
         type: string;
         audio?: Float32Array;
         language?: string;
         discardBeforeSeconds?: number;
+        playbackRate?: number;
     };
     if (type === 'load') void load();
-    if (type === 'transcribe' && audio) void transcribe(audio, language, discardBeforeSeconds);
+    if (type === 'transcribe' && audio) void transcribe(audio, language, discardBeforeSeconds, playbackRate);
 });
 
 export {};

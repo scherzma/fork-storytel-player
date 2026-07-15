@@ -147,6 +147,7 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
             transcriptionPlayer.currentTime = targetPosition;
         };
         const syncRate = () => {
+            transcriptionPlayer.preservesPitch = false;
             transcriptionPlayer.playbackRate = player.playbackRate;
         };
         const startSynchronizedPlayback = async () => {

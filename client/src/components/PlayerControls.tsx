@@ -3,7 +3,6 @@ import {formatTime} from '../utils/helpers';
 import {t} from "i18next";
 import {ListeningHistoryEntry} from '../interfaces/listeningHistory';
 import ListeningHistoryMarkers from './ListeningHistoryMarkers';
-import PlayerMoreMenu from './PlayerMoreMenu';
 
 interface PlayerControlsProps {
     isPlaying: boolean;
@@ -115,7 +114,11 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
                         <span className="hidden md:inline">{t(isReadAlongView ? 'transcription.coverView' : 'transcription.shortTitle')}</span>
                         {isTranscribing && !isReadAlongView && <span className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full bg-orange-300"/>}
                     </button>
-                    <PlayerMoreMenu historyCount={history.length} onShowHistory={onShowHistory}/>
+                    <button type="button" onClick={onShowHistory} className={`${pillButton} relative`} title={t('listeningHistory.open')} aria-label={t('listeningHistory.open')}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
+                        <span className="hidden lg:inline">{t('listeningHistory.shortTitle')}</span>
+                        {history.length > 0 && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-orange-300"/>}
+                    </button>
                 </div>
 
                 {/* Center controls */}
