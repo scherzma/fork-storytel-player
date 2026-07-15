@@ -64,7 +64,7 @@ jobs:
           node-version: 22
 
       - name: Build
-        run: npm run install-all
+        run: npm run ci:install-all
 
       - name: Release
         if: contains(github.ref, 'master')
@@ -84,7 +84,7 @@ jobs:
           node-version: 22
 
       - name: Build
-        run: npm run install-all
+        run: npm run ci:install-all
 
       - name: Release
         if: contains(github.ref, 'master')
@@ -104,7 +104,7 @@ jobs:
           node-version: 22
 
       - name: Build
-        run: npm run install-all
+        run: npm run ci:install-all
 
       - name: Release
         if: contains(github.ref, 'master')
@@ -124,7 +124,7 @@ jobs:
           node-version: 22
 
       - name: Build
-        run: npm run install-all
+        run: npm run ci:install-all
 
       # Notarization uses the App Store Connect API key. The .p8 is stored
       # base64-encoded in APPLE_API_KEY_CONTENT and decoded into a temp file.
@@ -156,7 +156,7 @@ jobs:
           node-version: 22
 
       - name: Build
-        run: npm run install-all
+        run: npm run ci:install-all
 
       # Notarization uses the App Store Connect API key. The .p8 is stored
       # base64-encoded in APPLE_API_KEY_CONTENT and decoded into a temp file.
@@ -188,7 +188,7 @@ jobs:
           node-version: 22
 
       - name: Build
-        run: npm run install-all
+        run: npm run ci:install-all
 
       - name: Release
         if: contains(github.ref, 'master')

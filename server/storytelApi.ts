@@ -129,17 +129,11 @@ class StorytelClient {
 
     this.client.interceptors.request.use((request) => {
       const url = request.url || "";
-      // Hide sensitive query params like password
-      let cleanUrl = url;
-      if (cleanUrl.includes("login.action")) {
-        cleanUrl = cleanUrl.replace(/pwd=[^&]+/, "pwd=***");
-      }
       appLogger.add({
         type: "http_request",
-        message: `[${request.method?.toUpperCase()}] ${cleanUrl}`,
+        message: `[${request.method?.toUpperCase()}] ${url}`,
         method: request.method?.toUpperCase(),
-        url: cleanUrl,
-        data: request.data,
+        url,
       });
       return request;
     });
@@ -147,34 +141,25 @@ class StorytelClient {
     this.client.interceptors.response.use(
       (response) => {
         const url = response.config.url || "";
-        let cleanUrl = url;
-        if (cleanUrl.includes("login.action")) {
-          cleanUrl = cleanUrl.replace(/pwd=[^&]+/, "pwd=***");
-        }
         appLogger.add({
           type: "http_response",
-          message: `[${response.status}] ${cleanUrl}`,
+          message: `[${response.status}] ${url}`,
           status: response.status,
           method: response.config.method?.toUpperCase(),
-          url: cleanUrl,
-          data: response.data,
+          url,
         });
         return response;
       },
       (error) => {
         const url = error.config?.url || "";
         const isLoginRequest = url.includes("login.action");
-        let cleanUrl = url;
-        if (cleanUrl.includes("login.action")) {
-          cleanUrl = cleanUrl.replace(/pwd=[^&]+/, "pwd=***");
-        }
         appLogger.add({
           type: "error",
-          message: `[Error ${error.response?.status || "N/A"}] ${cleanUrl}`,
+          message: `[Error ${error.response?.status || "N/A"}] ${url}`,
           status: error.response?.status,
           method: error.config?.method?.toUpperCase(),
-          url: cleanUrl,
-          data: error.response?.data || error.message,
+          url,
+          data: error.message,
         });
         // Propagate Storytel 401 as a distinct error type so Fastify routes
         // can return 401 to the frontend instead of a generic 500.

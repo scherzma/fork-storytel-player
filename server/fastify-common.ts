@@ -8,6 +8,7 @@ import fs from "fs";
 import path from "path";
 import axios from "axios";
 import { appLogger } from "./logger";
+import { resolveBookFile } from "./security";
 
 // Extend JWT user type. Legacy (email/password) login populates storytelToken
 // and jwt; SSO login populates the sso* fields instead and leaves the legacy
@@ -20,6 +21,7 @@ interface JWTUser {
   ssoFirebaseRefreshToken?: string;
   ssoFirebaseApiKey?: string;
   ssoCid?: string;
+  exp?: number;
 }
 
 function hydrateStorytelClient(user: JWTUser): StorytelClient {
@@ -76,9 +78,9 @@ function replyError(reply: FastifyReply, error: any) {
   return reply.code(500).send({ error: error.message });
 }
 
-const JWT_SECRET =
-  process.env.JWT_SECRET ||
-  "your-super-secret-jwt-key-change-this-in-production";
+// Electron provides a persistent OS-encrypted secret. Standalone development
+// receives an ephemeral secret unless the developer explicitly supplies one.
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString("base64url");
 const DOWNLOADS_DIR = process.env.IS_ELECTRON
   ? "" + process.env.DOWNLOAD_PATH
   : path.join(__dirname, "downloads");
@@ -115,6 +117,9 @@ fastify.decorate(
   async function (request: FastifyRequest, reply: FastifyReply) {
     try {
       await request.jwtVerify();
+      if (!request.user.exp) {
+        throw new Error("Legacy session without an expiry");
+      }
     } catch (err) {
       reply.code(401).send({ error: "Not authenticated" });
     }
@@ -136,11 +141,14 @@ fastify.post<{
     const loginData = await storytelClient.login(email, password);
 
     // Create JWT token with storytel client data
-    const token = fastify.jwt.sign({
-      storytelToken: loginData.accountInfo.singleSignToken,
-      jwt: loginData.accountInfo.jwt,
-      email: email,
-    });
+    const token = fastify.jwt.sign(
+      {
+        storytelToken: loginData.accountInfo.singleSignToken,
+        jwt: loginData.accountInfo.jwt,
+        email: email,
+      },
+      { expiresIn: "30d" },
+    );
 
     reply.send({ success: true, message: "Login successful", token });
   } catch (error: any) {
@@ -174,15 +182,18 @@ fastify.post<{
       return reply.code(400).send({ error: "Missing SSO credentials" });
     }
 
-    const token = fastify.jwt.sign({
-      email: email ?? "",
-      storytelToken: "",
-      jwt: "",
-      ssoStorytelSession: storytelSession,
-      ssoFirebaseRefreshToken: firebaseRefreshToken,
-      ssoFirebaseApiKey: firebaseApiKey,
-      ssoCid: cid ?? "",
-    });
+    const token = fastify.jwt.sign(
+      {
+        email: email ?? "",
+        storytelToken: "",
+        jwt: "",
+        ssoStorytelSession: storytelSession,
+        ssoFirebaseRefreshToken: firebaseRefreshToken,
+        ssoFirebaseApiKey: firebaseApiKey,
+        ssoCid: cid ?? "",
+      },
+      { expiresIn: "30d" },
+    );
 
     reply.send({ success: true, message: "SSO login successful", token });
   } catch (error: any) {
@@ -224,7 +235,7 @@ fastify.post<{
   async (request, reply) => {
     try {
       const { bookId, consumableId } = request.body;
-      const localFilePath = path.join(DOWNLOADS_DIR, `${bookId}.mp3`);
+      const localFilePath = resolveBookFile(DOWNLOADS_DIR, bookId);
 
       // Check if file exists locally
       if (fs.existsSync(localFilePath)) {
@@ -555,7 +566,7 @@ fastify.post<{
   async (request, reply) => {
     try {
       const { bookId } = request.body;
-      const localFilePath = path.join(DOWNLOADS_DIR, `${bookId}.mp3`);
+      const localFilePath = resolveBookFile(DOWNLOADS_DIR, bookId);
 
       // Check if already exists
       if (fs.existsSync(localFilePath)) {
@@ -704,7 +715,7 @@ fastify.get<{ Params: { bookId: string } }>(
   async (request, reply) => {
     try {
       const { bookId } = request.params;
-      const filePath = path.join(DOWNLOADS_DIR, `${bookId}.mp3`);
+      const filePath = resolveBookFile(DOWNLOADS_DIR, bookId);
 
       if (!fs.existsSync(filePath)) {
         return reply.code(404).send({ error: "File not found" });
@@ -762,7 +773,7 @@ fastify.get<{
   async (request, reply) => {
     try {
       const { bookId } = request.params;
-      const localFilePath = path.join(DOWNLOADS_DIR, `${bookId}.mp3`);
+      const localFilePath = resolveBookFile(DOWNLOADS_DIR, bookId);
 
       if (!fs.existsSync(localFilePath)) {
         return reply.code(404).send({ error: "File not found" });
@@ -787,7 +798,7 @@ fastify.get<{
   async (request, reply) => {
     try {
       const { bookId } = request.params;
-      const localFilePath = path.join(DOWNLOADS_DIR, `${bookId}.mp3`);
+      const localFilePath = resolveBookFile(DOWNLOADS_DIR, bookId);
 
       const exists = fs.existsSync(localFilePath);
       reply.send({ downloaded: exists });
@@ -808,7 +819,7 @@ fastify.delete<{
   async (request, reply) => {
     try {
       const { bookId } = request.params;
-      const localFilePath = path.join(DOWNLOADS_DIR, `${bookId}.mp3`);
+      const localFilePath = resolveBookFile(DOWNLOADS_DIR, bookId);
 
       if (!fs.existsSync(localFilePath)) {
         return reply.code(404).send({ error: "File not found" });

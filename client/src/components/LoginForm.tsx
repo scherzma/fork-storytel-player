@@ -35,15 +35,12 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
         setSsoProvider(null);
         return;
       }
-      if (result.error || !result.credentials) {
+      if (result.error) {
         setError(result.error ?? t('login.errors.failed'));
         setIsSsoLoading(false);
         setSsoProvider(null);
         return;
       }
-      const response = await api.post('/sso-login', result.credentials);
-      const { token } = response.data;
-      await storage.set('token', token);
       onLogin();
       navigate('/');
     } catch (err: any) {
@@ -68,8 +65,10 @@ function LoginForm({ onLogin, sessionExpired }: LoginFormProps) {
     try {
       trackAction('User attempted login', { email });
       const response = await api.post('/login', { email, password });
-      const { token } = response.data;
-      await storage.set('token', token);
+      if (!window.electronApi) {
+        const { token } = response.data;
+        await storage.set('token', token);
+      }
       onLogin();
       navigate('/');
     } catch (error: any) {

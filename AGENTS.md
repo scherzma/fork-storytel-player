@@ -138,7 +138,7 @@ storytel-player/
 ## Important Notes
 
 - **Security**: This is a desktop app with persistent session storage
-- **Authentication**: Session-based with secure storage via electron-store
+- **Authentication**: Expiring sessions encrypted via Electron `safeStorage`; never expose tokens to the renderer
 - **Single Instance**: App uses single instance lock (one app instance at a time)
 - **Updates**: Electron updater is integrated for auto-updates
 - **Offline Mode**: Support for downloading audiobooks for offline playback

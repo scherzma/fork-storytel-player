@@ -64,16 +64,6 @@ function App() {
 
   const checkAuthStatus = async () => {
     try {
-      const token = await storage.get("token");
-      if (!token) {
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        if (window.trayControls?.updateAuthState) {
-          window.trayControls.updateAuthState(false);
-        }
-        return;
-      }
-
       const response = await api.get("/auth/status");
       const authenticated = response.data.authenticated;
       setIsAuthenticated(authenticated);

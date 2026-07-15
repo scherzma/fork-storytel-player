@@ -65,16 +65,8 @@ contextBridge.exposeInMainWorld('electronApi', {
 });
 
 // Auth / SSO API
-interface SsoCredentials {
-  storytelSession: string;
-  firebaseRefreshToken: string;
-  firebaseApiKey: string;
-  email: string;
-  cid: string;
-}
 interface SsoLoginResult {
   cancelled: boolean;
-  credentials?: SsoCredentials;
   error?: string;
 }
 

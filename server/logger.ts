@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { sanitizeLogText, sanitizeLogValue } from './security';
 
 export interface LogEntry {
   id: string;
@@ -22,6 +23,7 @@ class Logger {
 
   constructor() {
     this.loadFromFile();
+    this.sanitizeArchivedFiles();
   }
 
   private getArchivedFilePath(index: number): string {
@@ -58,7 +60,11 @@ class Logger {
       if (fs.existsSync(this.LOG_FILE_PATH)) {
         const fileContent = fs.readFileSync(this.LOG_FILE_PATH, 'utf8');
         if (fileContent) {
-          this.logs = JSON.parse(fileContent);
+          const parsed = JSON.parse(fileContent);
+          this.logs = Array.isArray(parsed)
+            ? parsed.map((entry) => sanitizeLogValue(entry) as LogEntry)
+            : [];
+          this.saveToFile();
         }
       }
     } catch (e) {
@@ -66,15 +72,32 @@ class Logger {
     }
   }
 
+  private sanitizeArchivedFiles() {
+    for (let index = 1; index < this.MAX_FILES; index++) {
+      const filePath = this.getArchivedFilePath(index);
+      if (!fs.existsSync(filePath)) continue;
+      try {
+        const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        const sanitized = Array.isArray(parsed)
+          ? parsed.map((entry) => sanitizeLogValue(entry))
+          : [];
+        fs.writeFileSync(filePath, JSON.stringify(sanitized, null, 2), { mode: 0o600 });
+      } catch {
+        // A malformed legacy log cannot be safely scrubbed, so remove it.
+        fs.unlinkSync(filePath);
+      }
+    }
+  }
+
   private saveToFile() {
     try {
-      fs.writeFileSync(this.LOG_FILE_PATH, JSON.stringify(this.logs, null, 2));
+      fs.writeFileSync(this.LOG_FILE_PATH, JSON.stringify(this.logs, null, 2), { mode: 0o600 });
 
       // Rotate if file exceeds max size
       const stat = fs.statSync(this.LOG_FILE_PATH);
       if (stat.size > this.MAX_FILE_SIZE) {
         this.rotate();
-        fs.writeFileSync(this.LOG_FILE_PATH, JSON.stringify(this.logs, null, 2));
+        fs.writeFileSync(this.LOG_FILE_PATH, JSON.stringify(this.logs, null, 2), { mode: 0o600 });
       }
     } catch (e) {
       console.error('Failed to save logs to file', e);
@@ -87,7 +110,8 @@ class Logger {
 
   add(entry: Omit<LogEntry, 'id' | 'timestamp'>) {
     const log: LogEntry = {
-      ...entry,
+      ...sanitizeLogValue(entry) as Omit<LogEntry, 'id' | 'timestamp'>,
+      message: sanitizeLogText(entry.message),
       id: this.generateId(),
       timestamp: new Date().toISOString()
     };
