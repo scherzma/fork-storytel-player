@@ -109,7 +109,8 @@
     "loadBookmarksError": "Failed to load bookmarks",
     "skipBackward": "Go back 15 seconds",
     "skipForward": "Skip ahead 15 seconds",
-    "openFullPlayer": "Open full player"
+    "openFullPlayer": "Open full player",
+    "moreOptions": "More player options"
   },
   "listeningHistory": {
     "title": "Listening history",
@@ -137,25 +138,25 @@
     }
   },
   "transcription": {
-    "title": "Live transcription (experimental)",
-    "shortTitle": "Transcript",
-    "open": "Open live transcript",
+    "title": "Read along (experimental)",
+    "shortTitle": "Read along",
+    "open": "Open read along",
     "start": "Start transcription",
     "stop": "Stop",
     "clear": "Clear text",
     "localPrivacy": "Audio stays on this device. Only the speech model is downloaded.",
     "modelDownload": "Preparing local model… {{progress}}%",
     "empty": "No transcript yet",
-    "emptyHint": "Start transcription and play the audiobook. Text appears in roughly ten-second sections; select one to jump back to it.",
-    "experimentalNote": "This first experiment transcribes audio after it plays, so text will lag behind. Accuracy and speed depend on the narrator, language, playback speed, and your hardware.",
+    "emptyHint": "Start transcription and play the audiobook. After a short warm-up, the text will flow with the narration. Select any word to jump to it.",
+    "experimentalNote": "A silent local stream reads a few seconds ahead to keep the text ready. Accuracy and speed depend on the narrator, language, playback speed, and your hardware.",
     "unsupported": "This device cannot capture the audiobook stream for local transcription.",
     "failed": "Local transcription failed.",
     "status": {
       "idle": "Transcription is off",
       "loading": "Downloading and preparing the model",
       "ready": "Ready — play the audiobook",
-      "listening": "Listening locally",
-      "processing": "Turning the latest audio into text",
+      "listening": "Reading ahead locally",
+      "processing": "Writing the next words",
       "unsupported": "Audio capture is unavailable",
       "error": "Transcription error"
     }

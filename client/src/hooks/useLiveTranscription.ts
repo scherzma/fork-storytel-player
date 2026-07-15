@@ -2,8 +2,12 @@ import {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 import {TranscriptSegment, TranscriptionStatus, TranscriptionWorkerMessage} from '../interfaces/transcription';
 
 const SAMPLE_RATE = 16_000;
-const WINDOW_SECONDS = 10;
+const WINDOW_SECONDS = 6;
+const OVERLAP_SECONDS = 2;
 const TARGET_SAMPLES = SAMPLE_RATE * WINDOW_SECONDS;
+const OVERLAP_SAMPLES = SAMPLE_RATE * OVERLAP_SECONDS;
+const MAX_PENDING_WINDOWS = 3;
+const MAX_TRANSCRIPT_SEGMENTS = 250;
 
 type CapturableAudioElement = HTMLAudioElement & {
     captureStream?: () => MediaStream;
@@ -14,6 +18,8 @@ interface QueuedAudio {
     startTime: number;
     endTime: number;
     sessionId: number;
+    playbackRate: number;
+    discardBeforeSeconds: number;
 }
 
 interface UseLiveTranscriptionProps {
@@ -30,11 +36,13 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
     const silentGainRef = useRef<GainNode | null>(null);
     const capturedBuffersRef = useRef<Float32Array[]>([]);
     const capturedSamplesRef = useRef(0);
-    const pendingRef = useRef<QueuedAudio | null>(null);
+    const pendingRef = useRef<QueuedAudio[]>([]);
     const activeRequestRef = useRef<QueuedAudio | null>(null);
     const enabledRef = useRef(false);
     const readyRef = useRef(false);
     const sessionRef = useRef(0);
+    const captureStartTimeRef = useRef<number | null>(null);
+    const hasQueuedWindowRef = useRef(false);
     const languageRef = useRef(language);
     languageRef.current = language;
 
@@ -46,7 +54,9 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
     const resetCaptureBuffer = useCallback(() => {
         capturedBuffersRef.current = [];
         capturedSamplesRef.current = 0;
-        pendingRef.current = null;
+        pendingRef.current = [];
+        captureStartTimeRef.current = null;
+        hasQueuedWindowRef.current = false;
     }, []);
 
     const stopCapture = useCallback(() => {
@@ -69,12 +79,14 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
             type: 'transcribe',
             audio: queued.audio,
             language: languageRef.current,
+            discardBeforeSeconds: queued.discardBeforeSeconds,
         }, [queued.audio.buffer]);
     }, []);
 
     const queueCapturedAudio = useCallback(() => {
         const element = audioRef.current;
         if (!element || capturedSamplesRef.current < TARGET_SAMPLES) return;
+        if (activeRequestRef.current && pendingRef.current.length >= MAX_PENDING_WINDOWS) return;
 
         const merged = new Float32Array(capturedSamplesRef.current);
         let offset = 0;
@@ -82,17 +94,25 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
             merged.set(buffer, offset);
             offset += buffer.length;
         }
-        capturedBuffersRef.current = [];
-        capturedSamplesRef.current = 0;
+        const windowAudio = merged.slice(0, TARGET_SAMPLES);
+        const retainedAudio = merged.slice(TARGET_SAMPLES - OVERLAP_SAMPLES);
+        capturedBuffersRef.current = [retainedAudio];
+        capturedSamplesRef.current = retainedAudio.length;
 
-        const bookSeconds = WINDOW_SECONDS * element.playbackRate;
+        const playbackRate = element.playbackRate;
+        const startTime = captureStartTimeRef.current ?? Math.max(0, element.currentTime - WINDOW_SECONDS * playbackRate);
+        const endTime = startTime + WINDOW_SECONDS * playbackRate;
         const queued: QueuedAudio = {
-            audio: merged,
-            startTime: Math.max(0, element.currentTime - bookSeconds),
-            endTime: element.currentTime,
+            audio: windowAudio,
+            startTime,
+            endTime,
             sessionId: sessionRef.current,
+            playbackRate,
+            discardBeforeSeconds: hasQueuedWindowRef.current ? OVERLAP_SECONDS : 0,
         };
-        if (activeRequestRef.current) pendingRef.current = queued;
+        captureStartTimeRef.current = startTime + (WINDOW_SECONDS - OVERLAP_SECONDS) * playbackRate;
+        hasQueuedWindowRef.current = true;
+        if (activeRequestRef.current) pendingRef.current.push(queued);
         else sendNext(queued);
     }, [audioRef, sendNext]);
 
@@ -117,6 +137,9 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
             processor.onaudioprocess = event => {
                 if (!enabledRef.current || element.paused) return;
                 const samples = new Float32Array(event.inputBuffer.getChannelData(0));
+                if (captureStartTimeRef.current === null) {
+                    captureStartTimeRef.current = Math.max(0, element.currentTime - (samples.length / SAMPLE_RATE) * element.playbackRate);
+                }
                 capturedBuffersRef.current.push(samples);
                 capturedSamplesRef.current += samples.length;
                 queueCapturedAudio();
@@ -159,16 +182,28 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
                 const text = message.output?.trim();
                 const requestIsCurrent = request?.sessionId === sessionRef.current && enabledRef.current;
                 if (requestIsCurrent && request && text) {
-                    setSegments(previous => [...previous, {
-                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                        text,
-                        startTime: request.startTime,
-                        endTime: request.endTime,
-                    }].slice(-100));
+                    const segmentId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                    const mappedWords = (message.words || []).map((word, index) => ({
+                        id: `${segmentId}-${index}`,
+                        text: word.text,
+                        startTime: request.startTime + word.startTime * request.playbackRate,
+                        endTime: request.startTime + word.endTime * request.playbackRate,
+                    }));
+                    setSegments(previous => {
+                        const latestWord = previous.at(-1)?.words.at(-1);
+                        const words = latestWord
+                            ? mappedWords.filter(word => word.endTime > latestWord.endTime + 0.08)
+                            : mappedWords;
+                        const segmentText = words.length > 0 ? words.map(word => word.text).join('').trim() : text;
+                        if (!segmentText) return previous;
+                        const startTime = words[0]?.startTime ?? request.startTime + request.discardBeforeSeconds * request.playbackRate;
+                        const endTime = words.at(-1)?.endTime ?? request.endTime;
+                        return [...previous, {id: segmentId, text: segmentText, startTime, endTime, words}]
+                            .slice(-MAX_TRANSCRIPT_SEGMENTS);
+                    });
                 }
                 activeRequestRef.current = null;
-                const pending = pendingRef.current;
-                pendingRef.current = null;
+                const pending = pendingRef.current.shift();
                 if (pending?.sessionId === sessionRef.current && enabledRef.current) sendNext(pending);
                 else if (enabledRef.current) setStatus(audioRef.current?.paused ? 'ready' : 'listening');
                 else setStatus('idle');
@@ -217,7 +252,10 @@ export function useLiveTranscription({audioRef, bookId, language}: UseLiveTransc
         const handlePause = () => {
             if (enabledRef.current && !activeRequestRef.current) setStatus('ready');
         };
-        const handleSeek = () => resetCaptureBuffer();
+        const handleSeek = () => {
+            sessionRef.current += 1;
+            resetCaptureBuffer();
+        };
         element.addEventListener('play', handlePlay);
         element.addEventListener('pause', handlePause);
         element.addEventListener('seeking', handleSeek);

@@ -105,7 +105,8 @@
     "loadBookmarksError": "Lesezeichen konnten nicht geladen werden",
     "skipBackward": "15 Sekunden zurück",
     "skipForward": "15 Sekunden vorspringen",
-    "openFullPlayer": "Vollständigen Player öffnen"
+    "openFullPlayer": "Vollständigen Player öffnen",
+    "moreOptions": "Weitere Player-Optionen"
   },
   "listeningHistory": {
     "title": "Hörverlauf",
@@ -133,25 +134,25 @@
     }
   },
   "transcription": {
-    "title": "Live-Transkription (experimentell)",
-    "shortTitle": "Transkript",
-    "open": "Live-Transkript öffnen",
+    "title": "Mitlesen (experimentell)",
+    "shortTitle": "Mitlesen",
+    "open": "Mitlesen öffnen",
     "start": "Transkription starten",
     "stop": "Stoppen",
     "clear": "Text löschen",
     "localPrivacy": "Das Audio bleibt auf diesem Gerät. Nur das Sprachmodell wird heruntergeladen.",
     "modelDownload": "Lokales Modell wird vorbereitet… {{progress}} %",
     "empty": "Noch kein Transkript",
-    "emptyHint": "Starte die Transkription und spiele das Hörbuch ab. Text erscheint in Abschnitten von etwa zehn Sekunden; wähle einen Abschnitt, um dorthin zurückzuspringen.",
-    "experimentalNote": "Dieses erste Experiment transkribiert abgespieltes Audio, daher folgt der Text verzögert. Genauigkeit und Geschwindigkeit hängen von Stimme, Sprache, Wiedergabetempo und Hardware ab.",
+    "emptyHint": "Starte die Transkription und spiele das Hörbuch ab. Nach einer kurzen Vorbereitung fließt der Text mit der Erzählung. Wähle ein Wort, um dorthin zu springen.",
+    "experimentalNote": "Ein stummer lokaler Stream liest einige Sekunden voraus, damit der Text rechtzeitig bereitsteht. Genauigkeit und Geschwindigkeit hängen von Stimme, Sprache, Wiedergabetempo und Hardware ab.",
     "unsupported": "Dieses Gerät kann den Hörbuch-Stream nicht für die lokale Transkription erfassen.",
     "failed": "Die lokale Transkription ist fehlgeschlagen.",
     "status": {
       "idle": "Transkription ist aus",
       "loading": "Modell wird heruntergeladen und vorbereitet",
       "ready": "Bereit — Hörbuch abspielen",
-      "listening": "Lokale Erfassung läuft",
-      "processing": "Der neueste Audioabschnitt wird in Text umgewandelt",
+      "listening": "Liest lokal voraus",
+      "processing": "Schreibt die nächsten Wörter",
       "unsupported": "Audioerfassung ist nicht verfügbar",
       "error": "Transkriptionsfehler"
     }

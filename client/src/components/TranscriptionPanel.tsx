@@ -1,7 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {useTranslation} from 'react-i18next';
-import {TranscriptSegment, TranscriptionStatus} from '../interfaces/transcription';
-import {formatTime} from '../utils/helpers';
+import {TranscriptSegment, TranscriptWord, TranscriptionStatus} from '../interfaces/transcription';
 import Modal from './Modal';
 
 interface TranscriptionPanelProps {
@@ -33,13 +32,36 @@ function TranscriptionPanel({
 }: TranscriptionPanelProps) {
     const {t} = useTranslation();
     const endRef = useRef<HTMLDivElement>(null);
+    const activeWordRef = useRef<HTMLButtonElement>(null);
+    const words = segments.flatMap(segment => segment.words);
+    const activeWord = [...words].reverse().find(word => word.startTime <= currentTime && currentTime <= word.endTime + 1.5);
 
     useEffect(() => {
-        if (isOpen) endRef.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-    }, [isOpen, segments.length]);
+        if (!isOpen) return;
+        if (activeWord) {
+            activeWordRef.current?.scrollIntoView({behavior: 'smooth', block: 'center'});
+        } else if (isEnabled) {
+            endRef.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        }
+    }, [activeWord?.id, isEnabled, isOpen, words.length]);
 
-    const activeSegment = segments.find(segment => currentTime >= segment.startTime && currentTime <= segment.endTime);
     const statusLabel = t(`transcription.status.${status}`);
+
+    const renderWord = (word: TranscriptWord) => {
+        const isActive = activeWord?.id === word.id;
+        const isPast = word.endTime < currentTime;
+        return (
+            <button
+                key={word.id}
+                ref={isActive ? activeWordRef : undefined}
+                type="button"
+                onClick={() => onSeek(word.startTime)}
+                className={`rounded-md px-1 py-0.5 text-left leading-8 transition ${isActive ? 'bg-orange-500 text-white shadow-[0_0_18px_rgba(249,115,22,0.25)]' : isPast ? 'text-white/42 hover:bg-white/[0.06] hover:text-white/70' : 'text-white/80 hover:bg-white/[0.06] hover:text-white'}`}
+            >
+                {word.text.trim()}
+            </button>
+        );
+    };
 
     return (
         <Modal
@@ -89,7 +111,7 @@ function TranscriptionPanel({
                     )}
                 </div>
 
-                <div className="min-h-72 rounded-2xl border border-white/10 bg-[#101116] p-5">
+                <div className="max-h-[52vh] min-h-72 overflow-y-auto rounded-2xl border border-white/10 bg-[#101116] p-5 sm:p-7">
                     {segments.length === 0 ? (
                         <div className="flex min-h-64 flex-col items-center justify-center text-center">
                             <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-orange-300">
@@ -99,16 +121,12 @@ function TranscriptionPanel({
                             <p className="mt-2 max-w-md text-sm leading-6 text-white/40">{t('transcription.emptyHint')}</p>
                         </div>
                     ) : (
-                        <div className="space-y-2" aria-live="polite">
-                            {segments.map(segment => (
-                                <button
-                                    key={segment.id}
-                                    type="button"
-                                    onClick={() => onSeek(segment.startTime)}
-                                    className={`group w-full rounded-xl border px-4 py-3 text-left transition ${activeSegment?.id === segment.id ? 'border-orange-400/35 bg-orange-500/10' : 'border-transparent hover:border-white/10 hover:bg-white/[0.04]'}`}
-                                >
-                                    <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.12em] text-orange-300/70">{formatTime(segment.startTime)}</span>
-                                    <span className="block text-[15px] leading-7 text-white/80 group-hover:text-white">{segment.text}</span>
+                        <div className="text-[17px] leading-8" aria-live="polite">
+                            {segments.map(segment => segment.words.length > 0 ? (
+                                <React.Fragment key={segment.id}>{segment.words.map(renderWord)}{' '}</React.Fragment>
+                            ) : (
+                                <button key={segment.id} type="button" onClick={() => onSeek(segment.startTime)} className="rounded-md px-1 py-0.5 text-left leading-8 text-white/75 transition hover:bg-white/[0.06] hover:text-white">
+                                    {segment.text}
                                 </button>
                             ))}
                             <div ref={endRef} />

@@ -105,7 +105,8 @@
     "loadBookmarksError": "Échec du chargement des marque-pages",
     "skipBackward": "Reculer de 15 secondes",
     "skipForward": "Avancer de 15 secondes",
-    "openFullPlayer": "Ouvrir le lecteur complet"
+    "openFullPlayer": "Ouvrir le lecteur complet",
+    "moreOptions": "Plus d’options du lecteur"
   },
   "listeningHistory": {
     "title": "Historique d’écoute",
@@ -133,25 +134,25 @@
     }
   },
   "transcription": {
-    "title": "Transcription en direct (expérimentale)",
-    "shortTitle": "Transcription",
-    "open": "Ouvrir la transcription en direct",
+    "title": "Lecture synchronisée (expérimentale)",
+    "shortTitle": "Lire en même temps",
+    "open": "Ouvrir la lecture synchronisée",
     "start": "Démarrer la transcription",
     "stop": "Arrêter",
     "clear": "Effacer le texte",
     "localPrivacy": "L’audio reste sur cet appareil. Seul le modèle vocal est téléchargé.",
     "modelDownload": "Préparation du modèle local… {{progress}} %",
     "empty": "Aucune transcription pour le moment",
-    "emptyHint": "Démarrez la transcription et lancez le livre audio. Le texte apparaît par sections d’environ dix secondes ; sélectionnez-en une pour y revenir.",
-    "experimentalNote": "Cette première expérience transcrit l’audio après sa lecture : le texte aura donc du retard. La précision et la vitesse dépendent de la voix, de la langue, de la vitesse de lecture et de votre matériel.",
+    "emptyHint": "Démarrez la transcription et lancez le livre audio. Après une courte préparation, le texte suivra la narration. Sélectionnez un mot pour y accéder.",
+    "experimentalNote": "Un flux local silencieux lit quelques secondes en avance pour préparer le texte. La précision et la vitesse dépendent de la voix, de la langue, de la vitesse de lecture et de votre matériel.",
     "unsupported": "Cet appareil ne peut pas capturer le flux du livre audio pour une transcription locale.",
     "failed": "La transcription locale a échoué.",
     "status": {
       "idle": "La transcription est désactivée",
       "loading": "Téléchargement et préparation du modèle",
       "ready": "Prêt — lancez le livre audio",
-      "listening": "Écoute locale",
-      "processing": "Conversion du dernier extrait audio en texte",
+      "listening": "Lecture locale en avance",
+      "processing": "Écriture des prochains mots",
       "unsupported": "La capture audio n’est pas disponible",
       "error": "Erreur de transcription"
     }

@@ -12,6 +12,20 @@ export interface TranscriptSegment {
     text: string;
     startTime: number;
     endTime: number;
+    words: TranscriptWord[];
+}
+
+export interface TranscriptWord {
+    id: string;
+    text: string;
+    startTime: number;
+    endTime: number;
+}
+
+export interface TranscriptionWorkerWord {
+    text: string;
+    startTime: number;
+    endTime: number;
 }
 
 export interface TranscriptionWorkerMessage {
@@ -19,4 +33,5 @@ export interface TranscriptionWorkerMessage {
     message?: string;
     progress?: number;
     output?: string;
+    words?: TranscriptionWorkerWord[];
 }

@@ -5,6 +5,8 @@ import {useLiveTranscription} from '../hooks/useLiveTranscription';
 import storage from '../utils/storage';
 import TranscriptionPanel from '../components/TranscriptionPanel';
 
+const TRANSCRIPTION_LEAD_SECONDS = 8;
+
 interface PlayerContextValue {
     activeBook: BookShelfEntity | null;
     activeBookId: string | null;
@@ -139,8 +141,14 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
         if (!player || !transcriptionPlayer || !transcription.isEnabled || !audio.audioSrc) return;
 
         const syncPosition = () => {
-            if (!Number.isFinite(player.currentTime) || Math.abs(transcriptionPlayer.currentTime - player.currentTime) < 0.75) return;
-            transcriptionPlayer.currentTime = player.currentTime;
+            if (!Number.isFinite(player.currentTime) || transcriptionPlayer.readyState < HTMLMediaElement.HAVE_METADATA) return;
+            const lead = TRANSCRIPTION_LEAD_SECONDS * player.playbackRate;
+            const latestPosition = Number.isFinite(transcriptionPlayer.duration)
+                ? Math.max(0, transcriptionPlayer.duration - 0.1)
+                : player.currentTime + lead;
+            const targetPosition = Math.min(player.currentTime + lead, latestPosition);
+            if (Math.abs(transcriptionPlayer.currentTime - targetPosition) < 0.75) return;
+            transcriptionPlayer.currentTime = targetPosition;
         };
         const syncRate = () => {
             transcriptionPlayer.playbackRate = player.playbackRate;

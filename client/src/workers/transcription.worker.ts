@@ -54,7 +54,7 @@ const load = async () => {
     }
 };
 
-const transcribe = async (audio: Float32Array, language?: string) => {
+const transcribe = async (audio: Float32Array, language?: string, discardBeforeSeconds = 0) => {
     if (isProcessing) return;
     isProcessing = true;
     send({status: 'start'});
@@ -62,10 +62,21 @@ const transcribe = async (audio: Float32Array, language?: string) => {
         const transcriber = await getTranscriber();
         const result = await transcriber(audio, {
             task: 'transcribe',
+            return_timestamps: 'word',
             ...(language ? {language} : {}),
         });
         const first = Array.isArray(result) ? result[0] : result;
-        send({status: 'complete', output: first?.text?.trim() || ''});
+        const words = (first?.chunks || [])
+            .filter(chunk => chunk.timestamp[0] >= Math.max(0, discardBeforeSeconds - 0.08))
+            .map(chunk => ({
+                text: chunk.text,
+                startTime: chunk.timestamp[0],
+                endTime: chunk.timestamp[1],
+            }));
+        const output = words.length > 0
+            ? words.map(word => word.text).join('').trim()
+            : discardBeforeSeconds === 0 ? first?.text?.trim() || '' : '';
+        send({status: 'complete', output, words});
     } catch (error) {
         send({status: 'error', message: error instanceof Error ? error.message : String(error)});
     } finally {
@@ -74,9 +85,14 @@ const transcribe = async (audio: Float32Array, language?: string) => {
 };
 
 self.addEventListener('message', event => {
-    const {type, audio, language} = event.data as {type: string; audio?: Float32Array; language?: string};
+    const {type, audio, language, discardBeforeSeconds} = event.data as {
+        type: string;
+        audio?: Float32Array;
+        language?: string;
+        discardBeforeSeconds?: number;
+    };
     if (type === 'load') void load();
-    if (type === 'transcribe' && audio) void transcribe(audio, language);
+    if (type === 'transcribe' && audio) void transcribe(audio, language, discardBeforeSeconds);
 });
 
 export {};

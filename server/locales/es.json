@@ -105,7 +105,8 @@
     "loadBookmarksError": "Error al cargar los marcadores",
     "skipBackward": "Retroceder 15 segundos",
     "skipForward": "Avanzar 15 segundos",
-    "openFullPlayer": "Abrir reproductor completo"
+    "openFullPlayer": "Abrir reproductor completo",
+    "moreOptions": "Más opciones del reproductor"
   },
   "listeningHistory": {
     "title": "Historial de escucha",
@@ -133,25 +134,25 @@
     }
   },
   "transcription": {
-    "title": "Transcripción en vivo (experimental)",
-    "shortTitle": "Transcripción",
-    "open": "Abrir transcripción en vivo",
+    "title": "Leer mientras escuchas (experimental)",
+    "shortTitle": "Leer a la vez",
+    "open": "Abrir lectura sincronizada",
     "start": "Iniciar transcripción",
     "stop": "Detener",
     "clear": "Borrar texto",
     "localPrivacy": "El audio permanece en este dispositivo. Solo se descarga el modelo de voz.",
     "modelDownload": "Preparando el modelo local… {{progress}} %",
     "empty": "Aún no hay transcripción",
-    "emptyHint": "Inicia la transcripción y reproduce el audiolibro. El texto aparece en secciones de unos diez segundos; selecciona una para volver a ella.",
-    "experimentalNote": "Este primer experimento transcribe el audio después de reproducirlo, por lo que el texto tendrá retraso. La precisión y la velocidad dependen del narrador, el idioma, la velocidad de reproducción y el equipo.",
+    "emptyHint": "Inicia la transcripción y reproduce el audiolibro. Tras una breve preparación, el texto fluirá con la narración. Selecciona una palabra para ir a ella.",
+    "experimentalNote": "Un flujo local silencioso se adelanta unos segundos para tener el texto listo. La precisión y la velocidad dependen del narrador, el idioma, la velocidad de reproducción y el equipo.",
     "unsupported": "Este dispositivo no puede capturar el audio del audiolibro para transcribirlo localmente.",
     "failed": "La transcripción local ha fallado.",
     "status": {
       "idle": "La transcripción está desactivada",
       "loading": "Descargando y preparando el modelo",
       "ready": "Listo — reproduce el audiolibro",
-      "listening": "Escuchando localmente",
-      "processing": "Convirtiendo el audio más reciente en texto",
+      "listening": "Leyendo por adelantado localmente",
+      "processing": "Escribiendo las siguientes palabras",
       "unsupported": "La captura de audio no está disponible",
       "error": "Error de transcripción"
     }
