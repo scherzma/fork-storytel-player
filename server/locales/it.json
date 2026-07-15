@@ -29,6 +29,13 @@
     "viewGrid": "Vista a griglia",
 
     "viewList": "Vista a elenco",
+    "sortLabel": "Ordina libreria",
+    "sort": {
+      "recent": "Aggiunti di recente",
+      "title": "Titolo",
+      "author": "Autore",
+      "progress": "Avanzamento"
+    },
     "noMatches": "Nessun risultato con questi filtri",
     "noMatchesHint": "Prova un'altra ricerca o mostra tutti i libri.",
     "clearFilters": "Azzera filtri",
@@ -75,6 +82,8 @@
     "save": "Salva {{title}} nella tua libreria",
     "remove": "Rimuovi {{title}} dalla tua libreria",
     "saveShort": "Salva",
+    "saveToLibrary": "Salva nella libreria",
+    "removeShort": "Rimuovi dalla libreria",
     "saved": "Salvato",
     "saveSuccess": "“{{title}}” è stato aggiunto alla tua libreria.",
     "removeSuccess": "“{{title}}” è stato rimosso dalla tua libreria.",
@@ -101,6 +110,31 @@
     "skipBackward": "Torna indietro di 15 secondi",
     "skipForward": "Avanza di 15 secondi",
     "openFullPlayer": "Apri il lettore completo"
+  },
+  "listeningHistory": {
+    "title": "Cronologia di ascolto",
+    "shortTitle": "Cronologia",
+    "open": "Apri cronologia di ascolto",
+    "description": "Prima di un salto, la posizione precedente viene salvata localmente per questo audiolibro. Seleziona una voce per tornare indietro in sicurezza.",
+    "clear": "Cancella",
+    "empty": "Nessun salto ancora",
+    "emptyHint": "Spostamenti, cambi di capitolo e sincronizzazioni dei dispositivi appariranno qui.",
+    "restore": "Torna a {{time}}",
+    "jumpDetail": "{{from}} → {{to}} · {{date}}",
+    "otherDevice": "Altro dispositivo",
+    "syncedTitle": "Avanzamento aggiornato da un altro dispositivo",
+    "syncedDetail": "Ripresa a {{time}} con l’avanzamento Storytel più recente.",
+    "returnTo": "Torna a {{time}}",
+    "reasons": {
+      "seek": "Prima dello spostamento",
+      "skipForward": "Prima dell’avanzamento",
+      "skipBackward": "Prima del ritorno",
+      "goto": "Prima del salto a un orario",
+      "chapter": "Prima del cambio capitolo",
+      "bookmark": "Prima dell’apertura di un segnalibro",
+      "history": "Prima di un salto nella cronologia",
+      "deviceSync": "Posizione desktop conservata"
+    }
   },
   "bookmarks": {
     "title": "I tuoi Bookmarks",

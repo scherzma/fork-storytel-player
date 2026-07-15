@@ -20,6 +20,8 @@ import "../types/window.d.ts";
 import api, { trackAction } from "../utils/api";
 import {usePlayer} from '../contexts/PlayerContext';
 import {buildCatalogSearchPath, CatalogSearchSource} from '../utils/catalogSearch';
+import ListeningHistoryModal from './ListeningHistoryModal';
+import ExternalProgressNotice from './ExternalProgressNotice';
 
 interface PlayerViewProps {
     isOverlay?: boolean;
@@ -53,6 +55,7 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
     const [isDownloaded, setIsDownloaded] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [showDownloadCancelModal, setShowDownloadCancelModal] = useState(false);
+    const [showListeningHistory, setShowListeningHistory] = useState(false);
 
     const closePlayer = () => {
         if (onClose) {
@@ -98,7 +101,7 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
 
     // Goto modal hook
     const gotoModal = useGotoModal({
-        onSeek: audioPlayer.handleSeek,
+        onSeek: time => audioPlayer.handleSeek(time, 'goto'),
         duration: audioPlayer.duration,
         playbackRate,
         currentTime: audioPlayer.currentTime,
@@ -267,16 +270,27 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                     volume={audioPlayer.volume}
                     isMuted={audioPlayer.isMuted}
                     playbackRate={playbackRate}
+                    history={audioPlayer.history}
                     onPlayPause={audioPlayer.handlePlayPause}
                     onSeek={audioPlayer.handleSeek}
+                    onSeekStart={audioPlayer.handleSeekStart}
+                    onSeekEnd={audioPlayer.handleSeekEnd}
                     onVolumeChange={audioPlayer.handleVolumeChange}
                     onToggleMute={audioPlayer.toggleMute}
                     onSkipForward={audioPlayer.skipForward}
                     onSkipBackward={audioPlayer.skipBackward}
                     onShowGotoModal={gotoModal.openModal}
                     onShowPlaybackSpeedModal={() => setShowPlaybackSpeedModal(true)}
+                    onShowHistory={() => setShowListeningHistory(true)}
                 />
             </footer>
+
+            <ExternalProgressNotice
+                entry={audioPlayer.externalSyncEntry}
+                onRestore={() => audioPlayer.externalSyncEntry && audioPlayer.restoreHistoryEntry(audioPlayer.externalSyncEntry)}
+                onDismiss={audioPlayer.dismissExternalSync}
+                className="fixed bottom-40 right-5 z-[60] w-[min(30rem,calc(100vw-2.5rem))]"
+            />
 
             {/* Modals */}
             <PlaybackSpeedModal
@@ -305,7 +319,10 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                             currentTime={audioPlayer.currentTime}
                             playbackRate={playbackRate}
                             onClose={() => chapters.setShowChaptersModal(false)}
-                            onChapterClick={(time) => chapters.handleChapterClick(time, audioPlayer.audioRef)}
+                            onChapterClick={(time) => {
+                                audioPlayer.handleSeek(time, 'chapter');
+                                chapters.setShowChaptersModal(false);
+                            }}
                         />
 
                         <BookmarkModals
@@ -313,7 +330,7 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                             bookmarks={bookmarks.bookmarks}
                             onCloseBookmarksModal={() => bookmarks.setShowBookmarksModal(false)}
                             onShowCreateBookmarkModal={bookmarks.handleShowCreateBookmarkModal}
-                            onGoToBookmark={(position) => bookmarks.goToBookmark(position, audioPlayer.audioRef)}
+                            onGoToBookmark={(position) => audioPlayer.handleSeek(Math.floor(position / 1000), 'bookmark')}
                             onShowEditBookmarkModal={bookmarks.handleShowEditBookmarkModal}
                             onShowDeleteConfirmModal={bookmarks.handleShowDeleteConfirmModal}
                             showCreateBookmarkModal={bookmarks.showCreateBookmarkModal}
@@ -333,6 +350,17 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                             bookmarkToDelete={bookmarks.bookmarkToDelete}
                             onCloseDeleteConfirmModal={bookmarks.handleCloseDeleteConfirmModal}
                             onDeleteBookmark={bookmarks.deleteBookmark}
+                        />
+
+                        <ListeningHistoryModal
+                            isOpen={showListeningHistory}
+                            entries={audioPlayer.history}
+                            onClose={() => setShowListeningHistory(false)}
+                            onRestore={entry => {
+                                audioPlayer.restoreHistoryEntry(entry);
+                                setShowListeningHistory(false);
+                            }}
+                            onClear={audioPlayer.clearHistory}
                         />
 
             {/* Download Cancel/Delete Modal */}

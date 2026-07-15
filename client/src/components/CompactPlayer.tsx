@@ -1,8 +1,12 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {useLocation} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {usePlayer} from '../contexts/PlayerContext';
 import {buildCoverUrl, formatTime} from '../utils/helpers';
+import ListeningHistoryMarkers from './ListeningHistoryMarkers';
+import ListeningHistoryModal from './ListeningHistoryModal';
+import ExternalProgressNotice from './ExternalProgressNotice';
+import PlaybackSpeedModal from './PlaybackSpeedModal';
 
 function CompactPlayer() {
     const {t} = useTranslation();
@@ -11,9 +15,12 @@ function CompactPlayer() {
         activeBook,
         activeBookId,
         playbackRate,
+        setPlaybackRate,
         openExpandedPlayer,
         audio,
     } = usePlayer();
+    const [showHistory, setShowHistory] = useState(false);
+    const [showPlaybackSpeed, setShowPlaybackSpeed] = useState(false);
 
     if (!activeBook || !activeBookId || location.pathname.startsWith('/player/')) return null;
 
@@ -22,6 +29,7 @@ function CompactPlayer() {
     const progress = audio.duration > 0 ? Math.min((audio.currentTime / audio.duration) * 100, 100) : 0;
 
     return (
+        <>
         <aside
             className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#15171c]/95 text-white shadow-[0_-18px_50px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
             aria-label={t('player.nowPlaying')}
@@ -33,11 +41,18 @@ function CompactPlayer() {
                 step={1}
                 value={Math.min(audio.currentTime, audio.duration || 0)}
                 onChange={event => audio.handleSeek(Number(event.target.value))}
+                onPointerDown={audio.handleSeekStart}
+                onPointerUp={audio.handleSeekEnd}
+                onPointerCancel={audio.handleSeekEnd}
+                onKeyDown={audio.handleSeekStart}
+                onKeyUp={audio.handleSeekEnd}
+                onBlur={audio.handleSeekEnd}
                 disabled={!audio.duration}
                 aria-label={t('gotoModal.title')}
                 className="compact-player-progress absolute inset-x-0 top-0 z-10 h-2 w-full cursor-pointer appearance-none bg-transparent disabled:cursor-default"
                 style={{background: `linear-gradient(to right, #f97316 0%, #fbbf24 ${progress}%, rgba(255,255,255,0.12) ${progress}%, rgba(255,255,255,0.12) 100%)`}}
             />
+            <ListeningHistoryMarkers duration={audio.duration} entries={audio.history} compact/>
 
             <div className="mx-auto grid h-[5.5rem] max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-8 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-10">
                 <button
@@ -78,12 +93,34 @@ function CompactPlayer() {
                     <button type="button" onClick={audio.skipForward} aria-label={t('player.skipForward')} className="hidden h-10 w-10 items-center justify-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white sm:flex">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M20 4v6h-6m4.5 5a7 7 0 1 1-.4-6.7M12 9v4l2.5 1.5"/></svg>
                     </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowPlaybackSpeed(true)}
+                        aria-label={t('player.speed')}
+                        title={t('player.speed')}
+                        className="flex h-10 min-w-[3rem] items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] px-2 text-xs font-bold tabular-nums text-white/70 transition hover:bg-white/10 hover:text-white md:hidden"
+                    >
+                        {playbackRate}x
+                    </button>
                     <button data-testid="open-full-player-mobile" type="button" onClick={openExpandedPlayer} aria-label={t('player.openFullPlayer')} title={t('player.openFullPlayer')} className="ml-1 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white md:hidden">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
+                    </button>
+                    <button type="button" onClick={() => setShowHistory(true)} aria-label={t('listeningHistory.open')} title={t('listeningHistory.open')} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white md:hidden">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
+                        {audio.history.length > 0 && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-orange-300"/>}
                     </button>
                 </div>
 
                 <div className="hidden min-w-0 items-center justify-end gap-3 md:flex">
+                    <button
+                        type="button"
+                        onClick={() => setShowPlaybackSpeed(true)}
+                        aria-label={t('player.speed')}
+                        title={t('player.speed')}
+                        className="flex h-10 min-w-[3.25rem] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] px-2.5 text-xs font-bold tabular-nums text-white/70 transition hover:bg-white/10 hover:text-white"
+                    >
+                        {playbackRate}x
+                    </button>
                     <div className="hidden items-center gap-1.5 xl:flex">
                         <span className="text-xs tabular-nums text-white/45">{formatTime(currentTime)}</span>
                         <span className="text-xs text-white/20">/</span>
@@ -108,12 +145,41 @@ function CompactPlayer() {
                             className="slider w-20 xl:w-24"
                         />
                     </div>
+                    <button type="button" onClick={() => setShowHistory(true)} aria-label={t('listeningHistory.open')} title={t('listeningHistory.open')} className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
+                        {audio.history.length > 0 && (
+                            <span className={`absolute right-1 top-1 h-1.5 w-1.5 rounded-full ${audio.externalSyncEntry ? 'bg-sky-300' : 'bg-orange-300'}`}/>
+                        )}
+                    </button>
                     <button data-testid="open-full-player" type="button" onClick={openExpandedPlayer} aria-label={t('player.openFullPlayer')} title={t('player.openFullPlayer')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-white/60 transition hover:bg-white/10 hover:text-white">
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5"/></svg>
                     </button>
                 </div>
             </div>
         </aside>
+        <ExternalProgressNotice
+            entry={audio.externalSyncEntry}
+            onRestore={() => audio.externalSyncEntry && audio.restoreHistoryEntry(audio.externalSyncEntry)}
+            onDismiss={audio.dismissExternalSync}
+            className="fixed bottom-28 right-5 z-40 w-[min(30rem,calc(100vw-2.5rem))]"
+        />
+        <ListeningHistoryModal
+            isOpen={showHistory}
+            entries={audio.history}
+            onClose={() => setShowHistory(false)}
+            onRestore={entry => {
+                audio.restoreHistoryEntry(entry);
+                setShowHistory(false);
+            }}
+            onClear={audio.clearHistory}
+        />
+        <PlaybackSpeedModal
+            isOpen={showPlaybackSpeed}
+            playbackRate={playbackRate}
+            onClose={() => setShowPlaybackSpeed(false)}
+            onRateChange={setPlaybackRate}
+        />
+        </>
     );
 }
 

@@ -29,6 +29,13 @@
     "viewGrid": "Grid view",
 
     "viewList": "List view",
+    "sortLabel": "Sort library",
+    "sort": {
+      "recent": "Recently added",
+      "title": "Title",
+      "author": "Author",
+      "progress": "Progress"
+    },
     "noMatches": "Nothing matches these filters",
     "noMatchesHint": "Try another search or show all of your books.",
     "clearFilters": "Clear filters",
@@ -75,6 +82,8 @@
     "save": "Save {{title}} to your library",
     "remove": "Remove {{title}} from your library",
     "saveShort": "Save",
+    "saveToLibrary": "Save to library",
+    "removeShort": "Remove from library",
     "saved": "Saved",
     "saveSuccess": "“{{title}}” was added to your library.",
     "removeSuccess": "“{{title}}” was removed from your library.",
@@ -101,6 +110,31 @@
     "skipBackward": "Go back 15 seconds",
     "skipForward": "Skip ahead 15 seconds",
     "openFullPlayer": "Open full player"
+  },
+  "listeningHistory": {
+    "title": "Listening history",
+    "shortTitle": "History",
+    "open": "Open listening history",
+    "description": "Before a seek or jump, your previous position is saved locally for this audiobook. Select any entry to return safely.",
+    "clear": "Clear",
+    "empty": "No jumps yet",
+    "emptyHint": "Seeking, skipping, changing chapters, and device syncs will appear here.",
+    "restore": "Back to {{time}}",
+    "jumpDetail": "{{from}} → {{to}} · {{date}}",
+    "otherDevice": "Other device",
+    "syncedTitle": "Progress updated from another device",
+    "syncedDetail": "Continued at {{time}} using newer Storytel progress.",
+    "returnTo": "Back to {{time}}",
+    "reasons": {
+      "seek": "Before seeking",
+      "skipForward": "Before skipping ahead",
+      "skipBackward": "Before skipping back",
+      "goto": "Before going to a time",
+      "chapter": "Before changing chapter",
+      "bookmark": "Before opening a bookmark",
+      "history": "Before a history jump",
+      "deviceSync": "Desktop position preserved"
+    }
   },
   "bookmarks": {
     "title": "Your Bookmarks",

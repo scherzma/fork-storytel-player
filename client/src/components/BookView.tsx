@@ -16,6 +16,7 @@ import {
     getAuthorNames,
     getSeriesNames,
 } from '../utils/catalogSearch';
+import {useBrowseState} from '../contexts/BrowseStateContext';
 
 function BookView() {
     const {t, i18n} = useTranslation();
@@ -23,19 +24,32 @@ function BookView() {
     const location = useLocation();
     const navigate = useNavigate();
     const {activeBookId, startPlayback, audio} = usePlayer();
+    const {setLibraryBooks, setDiscoverBooks} = useBrowseState();
+    const book: BookShelfEntity = location.state?.book;
+    const returnTo: string = location.state?.returnTo || '/';
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [showFullDescription, setShowFullDescription] = useState(false);
-
-    const book: BookShelfEntity = location.state?.book;
-    const returnTo: string = location.state?.returnTo || '/';
+    const [isSaved, setIsSaved] = useState(Boolean(book?.isInLibrary));
+    const [isSaving, setIsSaving] = useState(false);
+    const [libraryNotice, setLibraryNotice] = useState<{type: 'success' | 'error'; message: string} | null>(null);
 
     // description and language are not part of the bookshelf payload; they come
     // from the per-book book-details endpoint, fetched lazily below.
     const [description, setDescription] = useState('');
     const [language, setLanguage] = useState('');
     const [detailSeriesNames, setDetailSeriesNames] = useState<string[]>(book ? getSeriesNames(book) : []);
+
+    useEffect(() => {
+        setIsSaved(Boolean(book?.isInLibrary));
+    }, [book]);
+
+    useEffect(() => {
+        if (!libraryNotice) return;
+        const timer = window.setTimeout(() => setLibraryNotice(null), 3500);
+        return () => window.clearTimeout(timer);
+    }, [libraryNotice]);
 
     useEffect(() => {
         if (book) {
@@ -81,6 +95,36 @@ function BookView() {
     const searchCatalog = (query: string, source: CatalogSearchSource) => {
         if (!query.trim()) return;
         navigate(buildCatalogSearchPath(query, source));
+    };
+
+    const handleLibraryToggle = async () => {
+        if (!book?.book?.consumableId || isSaving) return;
+        const saved = !isSaved;
+        const consumableId = String(book.book.consumableId);
+        setIsSaving(true);
+        setLibraryNotice(null);
+        try {
+            await api.put(`/bookshelf/${encodeURIComponent(consumableId)}`, {saved});
+            setIsSaved(saved);
+            setLibraryBooks(current => {
+                if (!saved) return current.filter(item => String(item.book.consumableId) !== consumableId);
+                if (current.some(item => String(item.book.consumableId) === consumableId)) {
+                    return current.map(item => String(item.book.consumableId) === consumableId ? {...item, isInLibrary: true} : item);
+                }
+                return [...current, {...book, isInLibrary: true}];
+            });
+            setDiscoverBooks(current => current.map(item =>
+                String(item.book.consumableId) === consumableId ? {...item, isInLibrary: saved} : item,
+            ));
+            setLibraryNotice({
+                type: 'success',
+                message: t(saved ? 'discover.saveSuccess' : 'discover.removeSuccess', {title: book.book.name}),
+            });
+        } catch {
+            setLibraryNotice({type: 'error', message: t('discover.saveError')});
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     if (isLoading) {
@@ -171,6 +215,31 @@ function BookView() {
                                         ? t('bookView.resume')
                                         : t('bookView.listen')}</span>
                         </button>
+                        <button
+                            type="button"
+                            onClick={handleLibraryToggle}
+                            disabled={isSaving}
+                            aria-label={t(isSaved ? 'discover.remove' : 'discover.save', {title: book.book.name})}
+                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-orange-500/20 disabled:cursor-wait disabled:opacity-60 ${
+                                isSaved
+                                    ? 'border-orange-300/25 bg-orange-500/10 text-orange-100 hover:bg-orange-500/20'
+                                    : 'border-white/12 bg-white/[0.045] text-white/75 hover:bg-white/[0.08] hover:text-white'
+                            }`}
+                        >
+                            {isSaving ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white"/>
+                            ) : (
+                                <svg className="h-4 w-4" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M5 5.75A2.75 2.75 0 0 1 7.75 3h8.5A2.75 2.75 0 0 1 19 5.75V21l-7-4-7 4V5.75Z"/>
+                                </svg>
+                            )}
+                            {t(isSaved ? 'discover.removeShort' : 'discover.saveToLibrary')}
+                        </button>
+                        {libraryNotice && (
+                            <p role="status" className={`mt-3 text-center text-xs font-semibold ${libraryNotice.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
+                                {libraryNotice.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* Details */}

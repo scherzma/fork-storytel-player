@@ -1,6 +1,8 @@
 import React from 'react';
 import {formatTime} from '../utils/helpers';
 import {t} from "i18next";
+import {ListeningHistoryEntry} from '../interfaces/listeningHistory';
+import ListeningHistoryMarkers from './ListeningHistoryMarkers';
 
 interface PlayerControlsProps {
     isPlaying: boolean;
@@ -9,14 +11,18 @@ interface PlayerControlsProps {
     volume: number;
     isMuted: boolean;
     playbackRate: number;
+    history: ListeningHistoryEntry[];
     onPlayPause: () => void;
     onSeek: (time: number) => void;
+    onSeekStart: () => void;
+    onSeekEnd: () => void;
     onVolumeChange: (volume: number) => void;
     onToggleMute: () => void;
     onSkipForward: () => void;
     onSkipBackward: () => void;
     onShowGotoModal: () => void;
     onShowPlaybackSpeedModal: () => void;
+    onShowHistory: () => void;
 }
 
 const PlayerControls: React.FC<PlayerControlsProps> = ({
@@ -26,14 +32,18 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     volume,
     isMuted,
     playbackRate,
+    history,
     onPlayPause,
     onSeek,
+    onSeekStart,
+    onSeekEnd,
     onVolumeChange,
     onToggleMute,
     onSkipForward,
     onSkipBackward,
     onShowGotoModal,
     onShowPlaybackSpeedModal,
+    onShowHistory,
 }) => {
     const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onSeek(parseFloat(e.target.value));
@@ -45,24 +55,31 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
 
     const progress = (currentTime / (duration || 1)) * 100;
     const pillButton =
-        'flex h-9 items-center rounded-lg border border-white/10 bg-white/[0.045] px-3 text-xs font-bold text-white/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400';
+        'flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.045] px-3 text-xs font-bold text-white/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400';
 
     return (
         <div className="mx-auto w-full max-w-5xl px-5 py-5 sm:px-8">
             {/* Progress Bar */}
-            <div className="mb-5">
+            <div className="relative mb-5">
                 <input
                     type="range"
                     min="0"
                     max={duration || 0}
                     value={currentTime}
                     onChange={handleSeekChange}
+                    onPointerDown={onSeekStart}
+                    onPointerUp={onSeekEnd}
+                    onPointerCancel={onSeekEnd}
+                    onKeyDown={onSeekStart}
+                    onKeyUp={onSeekEnd}
+                    onBlur={onSeekEnd}
                     aria-label={t('gotoModal.title')}
                     className="slider h-1.5 w-full cursor-pointer appearance-none rounded-full"
                     style={{
                         background: `linear-gradient(to right, #f97316 0%, #fbbf24 ${progress}%, rgba(255,255,255,0.12) ${progress}%, rgba(255,255,255,0.12) 100%)`
                     }}
                 />
+                <ListeningHistoryMarkers duration={duration} entries={history}/>
                 <div className="mt-2 flex items-center justify-between text-xs font-medium tabular-nums text-white/45">
                     <span>{formatTime(currentTime / playbackRate)}</span>
                     <span>{formatTime(duration / playbackRate)}</span>
@@ -78,6 +95,11 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
                     </button>
                     <button onClick={onShowGotoModal} className={`${pillButton} hidden sm:flex`}>
                         {t('gotoModal.go')}
+                    </button>
+                    <button onClick={onShowHistory} className={`${pillButton} relative`} title={t('listeningHistory.open')}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
+                        <span className="hidden sm:inline">{t('listeningHistory.shortTitle')}</span>
+                        {history.length > 0 && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-orange-300"/>}
                     </button>
                 </div>
 

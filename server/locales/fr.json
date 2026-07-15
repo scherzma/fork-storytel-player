@@ -24,6 +24,13 @@
     "viewGrid": "Vue grille",
 
     "viewList": "Vue liste",
+    "sortLabel": "Trier la bibliothèque",
+    "sort": {
+      "recent": "Ajoutés récemment",
+      "title": "Titre",
+      "author": "Auteur",
+      "progress": "Progression"
+    },
     "noMatches": "Aucun résultat avec ces filtres",
     "noMatchesHint": "Essayez une autre recherche ou affichez tous vos livres.",
     "clearFilters": "Effacer les filtres",
@@ -54,6 +61,8 @@
     "save": "Enregistrer {{title}} dans votre bibliothèque",
     "remove": "Retirer {{title}} de votre bibliothèque",
     "saveShort": "Enregistrer",
+    "saveToLibrary": "Ajouter à la bibliothèque",
+    "removeShort": "Retirer de la bibliothèque",
     "saved": "Enregistré",
     "saveSuccess": "« {{title}} » a été ajouté à votre bibliothèque.",
     "removeSuccess": "« {{title}} » a été retiré de votre bibliothèque.",
@@ -97,6 +106,31 @@
     "skipBackward": "Reculer de 15 secondes",
     "skipForward": "Avancer de 15 secondes",
     "openFullPlayer": "Ouvrir le lecteur complet"
+  },
+  "listeningHistory": {
+    "title": "Historique d’écoute",
+    "shortTitle": "Historique",
+    "open": "Ouvrir l’historique d’écoute",
+    "description": "Avant un saut, la position précédente est enregistrée localement pour ce livre audio. Sélectionnez une entrée pour revenir en toute sécurité.",
+    "clear": "Effacer",
+    "empty": "Aucun saut pour le moment",
+    "emptyHint": "Les déplacements, changements de chapitre et synchronisations d’appareils apparaîtront ici.",
+    "restore": "Retour à {{time}}",
+    "jumpDetail": "{{from}} → {{to}} · {{date}}",
+    "otherDevice": "Autre appareil",
+    "syncedTitle": "Progression mise à jour depuis un autre appareil",
+    "syncedDetail": "Reprise à {{time}} avec la progression Storytel la plus récente.",
+    "returnTo": "Retour à {{time}}",
+    "reasons": {
+      "seek": "Avant le déplacement",
+      "skipForward": "Avant l’avance",
+      "skipBackward": "Avant le retour",
+      "goto": "Avant d’aller à une heure",
+      "chapter": "Avant le changement de chapitre",
+      "bookmark": "Avant l’ouverture d’un marque-page",
+      "history": "Avant un saut dans l’historique",
+      "deviceSync": "Position du bureau conservée"
+    }
   },
   "bookmarks": {
     "title": "Vos Marque-pages",

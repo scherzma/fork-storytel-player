@@ -85,6 +85,31 @@ function BookCard({
                             : formatMicrosecondsTime(totalDuration)}
                     </span>
                 </div>
+                {onSaveChange && (
+                    <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onSaveChange(book, !isSaved);
+                        }}
+                        className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                            isSaved
+                                ? 'border-orange-300/30 bg-orange-500/15 text-orange-200 hover:bg-orange-500/25'
+                                : 'border-white/10 bg-white/[0.045] text-white/60 hover:bg-white/10 hover:text-white'
+                        } disabled:cursor-wait disabled:opacity-60`}
+                        aria-label={t(isSaved ? 'discover.remove' : 'discover.save', {title: book.book.name})}
+                        title={t(isSaved ? 'discover.removeShort' : 'discover.saveShort')}
+                    >
+                        {isSaving ? (
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white"/>
+                        ) : (
+                            <svg className="h-4 w-4" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M5 5.75A2.75 2.75 0 0 1 7.75 3h8.5A2.75 2.75 0 0 1 19 5.75V21l-7-4-7 4V5.75Z"/>
+                            </svg>
+                        )}
+                    </button>
+                )}
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#16171b] transition group-hover:bg-orange-400" aria-hidden="true">
                     <svg className="ml-0.5 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z"/>
@@ -140,7 +165,7 @@ function BookCard({
                                 : 'border-white/20 bg-black/60 text-white hover:border-orange-300/70 hover:bg-black/80'
                         } disabled:cursor-wait disabled:opacity-60`}
                         aria-label={t(isSaved ? 'discover.remove' : 'discover.save', {title: book.book.name})}
-                        title={t(isSaved ? 'discover.saved' : 'discover.saveShort')}
+                        title={t(isSaved ? 'discover.removeShort' : 'discover.saveShort')}
                     >
                         {isSaving ? (
                             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />

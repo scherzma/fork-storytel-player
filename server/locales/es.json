@@ -24,6 +24,13 @@
     "viewGrid": "Vista de cuadrícula",
 
     "viewList": "Vista de lista",
+    "sortLabel": "Ordenar biblioteca",
+    "sort": {
+      "recent": "Añadidos recientemente",
+      "title": "Título",
+      "author": "Autor",
+      "progress": "Progreso"
+    },
     "noMatches": "Nada coincide con estos filtros",
     "noMatchesHint": "Prueba otra búsqueda o muestra todos tus libros.",
     "clearFilters": "Borrar filtros",
@@ -54,6 +61,8 @@
     "save": "Guardar {{title}} en tu biblioteca",
     "remove": "Eliminar {{title}} de tu biblioteca",
     "saveShort": "Guardar",
+    "saveToLibrary": "Guardar en la biblioteca",
+    "removeShort": "Eliminar de la biblioteca",
     "saved": "Guardado",
     "saveSuccess": "“{{title}}” se ha añadido a tu biblioteca.",
     "removeSuccess": "“{{title}}” se ha eliminado de tu biblioteca.",
@@ -97,6 +106,31 @@
     "skipBackward": "Retroceder 15 segundos",
     "skipForward": "Avanzar 15 segundos",
     "openFullPlayer": "Abrir reproductor completo"
+  },
+  "listeningHistory": {
+    "title": "Historial de escucha",
+    "shortTitle": "Historial",
+    "open": "Abrir historial de escucha",
+    "description": "Antes de un salto, la posición anterior se guarda localmente para este audiolibro. Selecciona una entrada para volver con seguridad.",
+    "clear": "Borrar",
+    "empty": "Aún no hay saltos",
+    "emptyHint": "Los saltos, cambios de capítulo y sincronizaciones de dispositivos aparecerán aquí.",
+    "restore": "Volver a {{time}}",
+    "jumpDetail": "{{from}} → {{to}} · {{date}}",
+    "otherDevice": "Otro dispositivo",
+    "syncedTitle": "Progreso actualizado desde otro dispositivo",
+    "syncedDetail": "Continuando en {{time}} con el progreso más reciente de Storytel.",
+    "returnTo": "Volver a {{time}}",
+    "reasons": {
+      "seek": "Antes de desplazarse",
+      "skipForward": "Antes de avanzar",
+      "skipBackward": "Antes de retroceder",
+      "goto": "Antes de ir a una hora",
+      "chapter": "Antes de cambiar de capítulo",
+      "bookmark": "Antes de abrir un marcador",
+      "history": "Antes de un salto del historial",
+      "deviceSync": "Posición del escritorio guardada"
+    }
   },
   "bookmarks": {
     "title": "Tus Marcadores",

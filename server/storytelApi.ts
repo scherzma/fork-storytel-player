@@ -144,17 +144,32 @@ export function buildBookshelfUpdateRequest(
   resourceVersion: string | null,
   saved: boolean,
 ) {
+  const item = saved
+    ? {
+        millisecondsSinceEvent: 0,
+        action: "SET",
+        state: "WILL_CONSUME",
+      }
+    : {
+        millisecondsSinceEvent: 0,
+        action: "DELETE",
+      };
+
   return {
     resourceVersion,
     items: {
-      [consumableId]: {
-        millisecondsSinceEvent: 0,
-        action: saved ? "SET" : "DELETE",
-        state: saved ? "WILL_CONSUME" : null,
-      },
+      [consumableId]: item,
     },
     followingItems: null,
     collections: null,
+  };
+}
+
+export function buildBookshelfUpdateHeaders(bearer: string) {
+  return {
+    Authorization: `Bearer ${bearer}`,
+    "Content-Type": "application/json",
+    Accept: "application/vnd.storytel.library-delta+json;v=1.4",
   };
 }
 
@@ -525,11 +540,7 @@ class StorytelClient {
               saved,
             ),
             {
-              headers: {
-                Authorization: `Bearer ${bearer}`,
-                "Content-Type": "application/json",
-                Accept: "application/vnd.storytel.library-delta+json;v=1.4",
-              },
+              headers: buildBookshelfUpdateHeaders(bearer),
             },
           );
           return;

@@ -15,7 +15,7 @@ interface DashboardProps {
 }
 
 function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
     const navigate = useNavigate();
     const {
         libraryBooks: books,
@@ -28,9 +28,14 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
         setLibraryQuery: setSearchQuery,
         libraryViewMode: viewMode,
         setLibraryViewMode,
+        librarySort: sort,
+        setLibrarySort: setSort,
+        setDiscoverBooks,
     } = useBrowseState();
     const [isLoading, setIsLoading] = useState(!libraryLoaded);
     const [error, setError] = useState('');
+    const [notice, setNotice] = useState<{type: 'success' | 'error'; message: string} | null>(null);
+    const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -47,16 +52,39 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        if (!notice) return;
+        const timer = window.setTimeout(() => setNotice(null), 3500);
+        return () => window.clearTimeout(timer);
+    }, [notice]);
+
     const filteredBooks = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
-        return books.filter(book => {
+        const matchingBooks = books.filter(book => {
             if (!book.abook) return false;
             if (filterStatus !== -1 && Number(book.status) !== filterStatus) return false;
             if (!normalizedQuery) return true;
             return [book.book?.name, book.book?.authorsAsString, book.abook?.narratorAsString]
                 .some(value => value?.toLocaleLowerCase().includes(normalizedQuery));
         });
-    }, [books, filterStatus, searchQuery]);
+
+        return matchingBooks.sort((left, right) => {
+            if (sort === 'title') {
+                return (left.book.name || '').localeCompare(right.book.name || '', i18n.language);
+            }
+            if (sort === 'author') {
+                return (left.book.authorsAsString || '').localeCompare(right.book.authorsAsString || '', i18n.language);
+            }
+            if (sort === 'progress') {
+                const leftProgress = left.abook.time > 0 ? (left.abookMark?.pos || 0) / left.abook.time : 0;
+                const rightProgress = right.abook.time > 0 ? (right.abookMark?.pos || 0) / right.abook.time : 0;
+                return rightProgress - leftProgress;
+            }
+            const leftDate = Date.parse(left.insertDate || '');
+            const rightDate = Date.parse(right.insertDate || '');
+            return (Number.isFinite(rightDate) ? rightDate : 0) - (Number.isFinite(leftDate) ? leftDate : 0);
+        });
+    }, [books, filterStatus, i18n.language, searchQuery, sort]);
 
     const counts = useMemo(() => ({
         all: books.filter(book => Boolean(book.abook)).length,
@@ -87,6 +115,36 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
 
     const handleBookSelect = (book: BookShelfEntity) => {
         navigate(`/book/${book.abook?.id}`, {state: {book, returnTo: '/'}});
+    };
+
+    const handleSaveChange = async (book: BookShelfEntity, saved: boolean) => {
+        const consumableId = String(book.book.consumableId);
+        if (pendingIds.has(consumableId)) return;
+
+        setPendingIds(current => new Set(current).add(consumableId));
+        setNotice(null);
+        try {
+            await api.put(`/bookshelf/${encodeURIComponent(consumableId)}`, {saved});
+            setBooks(current => saved
+                ? current.map(item => String(item.book.consumableId) === consumableId ? {...item, isInLibrary: true} : item)
+                : current.filter(item => String(item.book.consumableId) !== consumableId),
+            );
+            setDiscoverBooks(current => current.map(item =>
+                String(item.book.consumableId) === consumableId ? {...item, isInLibrary: saved} : item,
+            ));
+            setNotice({
+                type: 'success',
+                message: t(saved ? 'discover.saveSuccess' : 'discover.removeSuccess', {title: book.book.name}),
+            });
+        } catch {
+            setNotice({type: 'error', message: t('discover.saveError')});
+        } finally {
+            setPendingIds(current => {
+                const next = new Set(current);
+                next.delete(consumableId);
+                return next;
+            });
+        }
     };
 
     const changeViewMode = setLibraryViewMode;
@@ -185,6 +243,26 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
                                             </button>
                                         ))}
                                     </div>
+                                    <label className="relative flex h-10 shrink-0 items-center rounded-xl border border-white/10 bg-white/[0.045] pl-3 text-white/55 focus-within:border-orange-400/60 focus-within:ring-2 focus-within:ring-orange-400/20">
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 7h11m-11 5h8m-8 5h5m7-12v14m0 0-3-3m3 3 3-3"/>
+                                        </svg>
+                                        <span className="sr-only">{t('dashboard.sortLabel')}</span>
+                                        <select
+                                            value={sort}
+                                            onChange={event => setSort(event.target.value as typeof sort)}
+                                            aria-label={t('dashboard.sortLabel')}
+                                            className="h-full cursor-pointer appearance-none bg-transparent pl-2 pr-8 text-xs font-bold text-white/75 outline-none"
+                                        >
+                                            <option className="bg-[#1b1d22]" value="recent">{t('dashboard.sort.recent')}</option>
+                                            <option className="bg-[#1b1d22]" value="title">{t('dashboard.sort.title')}</option>
+                                            <option className="bg-[#1b1d22]" value="author">{t('dashboard.sort.author')}</option>
+                                            <option className="bg-[#1b1d22]" value="progress">{t('dashboard.sort.progress')}</option>
+                                        </select>
+                                        <svg className="pointer-events-none absolute right-2.5 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m7 10 5 5 5-5"/>
+                                        </svg>
+                                    </label>
                                     <div className="flex shrink-0 rounded-xl bg-white/[0.045] p-1" role="group" aria-label={t('dashboard.viewLabel')}>
                                         <button
                                             type="button"
@@ -229,19 +307,45 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
                             ) : viewMode === 'list' ? (
                                 <div className="flex flex-col gap-3">
                                     {filteredBooks.map(book => (
-                                        <BookCard key={`${book.book.consumableId}-${book.abook.id}`} book={book} onBookSelect={handleBookSelect} layout="list" />
+                                        <BookCard
+                                            key={`${book.book.consumableId}-${book.abook.id}`}
+                                            book={book}
+                                            onBookSelect={handleBookSelect}
+                                            onSaveChange={handleSaveChange}
+                                            isSaving={pendingIds.has(String(book.book.consumableId))}
+                                            layout="list"
+                                        />
                                     ))}
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                                     {filteredBooks.map(book => (
-                                        <BookCard key={`${book.book.consumableId}-${book.abook.id}`} book={book} onBookSelect={handleBookSelect} />
+                                        <BookCard
+                                            key={`${book.book.consumableId}-${book.abook.id}`}
+                                            book={book}
+                                            onBookSelect={handleBookSelect}
+                                            onSaveChange={handleSaveChange}
+                                            isSaving={pendingIds.has(String(book.book.consumableId))}
+                                        />
                                     ))}
                                 </div>
                             )}
                         </>
                     )}
                 </main>
+            )}
+            {notice && (
+                <div
+                    role="status"
+                    className={`fixed bottom-28 left-1/2 z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl ${
+                        notice.type === 'success'
+                            ? 'border-emerald-300/25 bg-emerald-950/90 text-emerald-100'
+                            : 'border-red-300/25 bg-red-950/90 text-red-100'
+                    }`}
+                >
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${notice.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'}`}/>
+                    {notice.message}
+                </div>
             )}
         </div>
     );

@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {buildBookshelfUpdateRequest} from './storytelApi';
+import {buildBookshelfUpdateHeaders, buildBookshelfUpdateRequest} from './storytelApi';
+
+test('bookshelf writes use JSON while requesting the Storytel delta response', () => {
+  assert.deepEqual(buildBookshelfUpdateHeaders('test-token'), {
+    Authorization: 'Bearer test-token',
+    'Content-Type': 'application/json',
+    Accept: 'application/vnd.storytel.library-delta+json;v=1.4',
+  });
+});
 
 test('bookshelf save uses Storytel library delta format', () => {
   assert.deepEqual(buildBookshelfUpdateRequest('book-123', 'version-7', true), {
@@ -24,7 +32,6 @@ test('bookshelf removal sends a delete delta without a state', () => {
       'book-123': {
         millisecondsSinceEvent: 0,
         action: 'DELETE',
-        state: null,
       },
     },
     followingItems: null,

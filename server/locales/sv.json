@@ -24,6 +24,13 @@
     "viewGrid": "Rutnätsvy",
 
     "viewList": "Listvy",
+    "sortLabel": "Sortera bibliotek",
+    "sort": {
+      "recent": "Senast tillagda",
+      "title": "Titel",
+      "author": "Författare",
+      "progress": "Förlopp"
+    },
     "noMatches": "Inget matchar filtren",
     "noMatchesHint": "Prova en annan sökning eller visa alla böcker.",
     "clearFilters": "Rensa filter",
@@ -54,6 +61,8 @@
     "save": "Spara {{title}} i ditt bibliotek",
     "remove": "Ta bort {{title}} från ditt bibliotek",
     "saveShort": "Spara",
+    "saveToLibrary": "Spara i biblioteket",
+    "removeShort": "Ta bort från biblioteket",
     "saved": "Sparad",
     "saveSuccess": "”{{title}}” lades till i ditt bibliotek.",
     "removeSuccess": "”{{title}}” togs bort från ditt bibliotek.",
@@ -97,6 +106,31 @@
     "skipBackward": "Gå tillbaka 15 sekunder",
     "skipForward": "Hoppa fram 15 sekunder",
     "openFullPlayer": "Öppna hela spelaren"
+  },
+  "listeningHistory": {
+    "title": "Lyssningshistorik",
+    "shortTitle": "Historik",
+    "open": "Öppna lyssningshistorik",
+    "description": "Före ett hopp sparas den tidigare positionen lokalt för den här ljudboken. Välj en post för att gå tillbaka säkert.",
+    "clear": "Rensa",
+    "empty": "Inga hopp ännu",
+    "emptyHint": "Sökningar, kapitelbyten och enhetssynkroniseringar visas här.",
+    "restore": "Tillbaka till {{time}}",
+    "jumpDetail": "{{from}} → {{to}} · {{date}}",
+    "otherDevice": "Annan enhet",
+    "syncedTitle": "Förlopp uppdaterat från en annan enhet",
+    "syncedDetail": "Fortsätter vid {{time}} med det senaste Storytel-förloppet.",
+    "returnTo": "Tillbaka till {{time}}",
+    "reasons": {
+      "seek": "Före sökning",
+      "skipForward": "Före hopp framåt",
+      "skipBackward": "Före hopp bakåt",
+      "goto": "Före tidshopp",
+      "chapter": "Före kapitelbyte",
+      "bookmark": "Före öppning av bokmärke",
+      "history": "Före historikhopp",
+      "deviceSync": "Datorposition sparad"
+    }
   },
   "bookmarks": {
     "title": "Dina bokmärken",

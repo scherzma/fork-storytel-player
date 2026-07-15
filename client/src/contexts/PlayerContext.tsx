@@ -1,6 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {BookShelfEntity} from '../interfaces/books';
 import {useAudioPlayer} from '../hooks/useAudioPlayer';
+import storage from '../utils/storage';
 
 interface PlayerContextValue {
     activeBook: BookShelfEntity | null;
@@ -52,8 +53,16 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
     const setPlaybackRate = useCallback((rate: number) => {
         setPlaybackRateState(rate);
         if (audio.audioRef.current) audio.audioRef.current.playbackRate = rate;
+        void storage.set('playbackRate', String(rate));
     }, [audio.audioRef]);
     setSpeedRef.current = setPlaybackRate;
+
+    useEffect(() => {
+        void storage.get('playbackRate').then(saved => {
+            const rate = Number(saved);
+            if (Number.isFinite(rate) && rate >= 0.5 && rate <= 2) setPlaybackRateState(rate);
+        });
+    }, []);
 
     useEffect(() => {
         if (enabled) return;
@@ -96,6 +105,20 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
         document.addEventListener('keydown', handleKeyboardPlayback);
         return () => document.removeEventListener('keydown', handleKeyboardPlayback);
     }, [activeBook, audio.handlePlayPause, audio.skipBackward, audio.skipForward]);
+
+    useEffect(() => {
+        if (!activeBook) return;
+        const checkForOtherDeviceProgress = () => {
+            if (document.visibilityState === 'hidden') return;
+            if (!audio.isPlaying) void audio.refreshFromRemote();
+        };
+        window.addEventListener('focus', checkForOtherDeviceProgress);
+        document.addEventListener('visibilitychange', checkForOtherDeviceProgress);
+        return () => {
+            window.removeEventListener('focus', checkForOtherDeviceProgress);
+            document.removeEventListener('visibilitychange', checkForOtherDeviceProgress);
+        };
+    }, [activeBook, audio.isPlaying, audio.refreshFromRemote]);
 
     const value = useMemo<PlayerContextValue>(() => ({
         activeBook,
