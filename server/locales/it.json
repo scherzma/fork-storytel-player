@@ -54,8 +54,14 @@
   "discover": {
     "title": "Scopri libri",
     "eyebrow": "Esplora Storytel",
-    "subtitle": "Cerca nel catalogo Storytel per titolo, autore o narratore.",
-    "placeholder": "Titolo, autore o narratore",
+    "subtitle": "Cerca nel catalogo Storytel per titolo, autore, narratore o serie.",
+    "placeholder": "Titolo, autore, narratore o serie",
+    "searchContext": {
+      "author": "Libri di o con {{name}}",
+      "narrator": "Libri narrati da {{name}}",
+      "series": "Libri della serie {{name}}",
+      "category": "Audiolibri {{name}}"
+    },
     "search": "Cerca",
     "searching": "Ricerca in corso...",
     "prompt": "Trova il tuo prossimo audiolibro",
@@ -91,7 +97,10 @@
     "loadingBookData": "Caricamento dati libro...",
     "loadError": "Impossibile caricare lo stream audio",
     "loadChaptersError": "Impossibile caricare i capitoli",
-    "loadBookmarksError": "Impossibile caricare i segnalibri"
+    "loadBookmarksError": "Impossibile caricare i segnalibri",
+    "skipBackward": "Torna indietro di 15 secondi",
+    "skipForward": "Avanza di 15 secondi",
+    "openFullPlayer": "Apri il lettore completo"
   },
   "bookmarks": {
     "title": "I tuoi Bookmarks",
@@ -125,7 +134,8 @@
     "cancel": "Annulla",
     "save": "Salva",
     "delete": "Elimina",
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "back": "Indietro"
   },
   "bookCard": {
     "open": "Apri {{title}}",
@@ -139,9 +149,15 @@
   "bookView": {
     "saved": "Salvato",
     "listen": "Ascolta",
+    "resume": "Riprendi",
     "language": "Lingua",
     "duration": "Durata",
     "category": "Categoria",
+    "series": "Serie:",
+    "searchAuthor": "Cerca libri di {{name}}",
+    "searchNarrator": "Cerca libri narrati da {{name}}",
+    "searchSeries": "Cerca nella serie {{name}}",
+    "searchCategory": "Cerca audiolibri {{name}}",
     "noDescription": "Nessuna descrizione disponibile.",
     "showMore": "mostra di più",
     "showLess": "mostra meno",
@@ -230,7 +246,11 @@
     "developer": "Sviluppatore",
     "viewLogs": "Visualizza Log di Sessione",
     "language": "Lingua",
-    "languageAuto": "Auto"
+    "languageAuto": "Automatico",
+    "languageDescription": "Scegli la lingua dell’applicazione",
+    "languages": {
+      "en": "English", "it": "Italiano", "fr": "Français", "es": "Español", "de": "Deutsch", "sv": "Svenska"
+    }
   },
   "logs": {
     "title": "Log di Sistema",

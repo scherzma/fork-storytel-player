@@ -59,8 +59,14 @@
     "removeSuccess": "”{{title}}” togs bort från ditt bibliotek.",
     "saveError": "Storytel kunde inte uppdatera ditt bibliotek. Försök igen.",
     "title": "Upptäck böcker",
-    "subtitle": "Sök i Storytels katalog efter titel, författare eller uppläsare.",
-    "placeholder": "Titel, författare eller uppläsare",
+    "subtitle": "Sök i Storytels katalog efter titel, författare, uppläsare eller serie.",
+    "placeholder": "Titel, författare, uppläsare eller serie",
+    "searchContext": {
+      "author": "Böcker av eller med {{name}}",
+      "narrator": "Böcker upplästa av {{name}}",
+      "series": "Böcker i serien {{name}}",
+      "category": "{{name}}-ljudböcker"
+    },
     "search": "Sök",
     "searching": "Söker...",
     "prompt": "Hitta din nästa ljudbok",
@@ -87,7 +93,10 @@
     "loadingBookData": "Laddar bokdata...",
     "loadError": "Kunde inte ladda ljudström",
     "loadChaptersError": "Kunde inte ladda kapitel",
-    "loadBookmarksError": "Kunde inte ladda bokmärken"
+    "loadBookmarksError": "Kunde inte ladda bokmärken",
+    "skipBackward": "Gå tillbaka 15 sekunder",
+    "skipForward": "Hoppa fram 15 sekunder",
+    "openFullPlayer": "Öppna hela spelaren"
   },
   "bookmarks": {
     "title": "Dina bokmärken",
@@ -121,7 +130,8 @@
     "cancel": "Avbryt",
     "save": "Spara",
     "delete": "Ta bort",
-    "close": "Stäng"
+    "close": "Stäng",
+    "back": "Tillbaka"
   },
   "bookCard": {
     "open": "Öppna {{title}}",
@@ -135,9 +145,15 @@
   "bookView": {
     "saved": "Sparad",
     "listen": "Lyssna",
+    "resume": "Fortsätt",
     "language": "Språk",
     "duration": "Längd",
     "category": "Kategori",
+    "series": "Serie:",
+    "searchAuthor": "Sök efter böcker av {{name}}",
+    "searchNarrator": "Sök efter böcker upplästa av {{name}}",
+    "searchSeries": "Sök i serien {{name}}",
+    "searchCategory": "Sök efter {{name}}-ljudböcker",
     "noDescription": "Ingen beskrivning tillgänglig.",
     "showMore": "visa mer",
     "showLess": "visa mindre",
@@ -226,7 +242,11 @@
     "developer": "Utvecklare",
     "viewLogs": "Visa sessionsloggar",
     "language": "Språk",
-    "languageAuto": "Auto"
+    "languageAuto": "Automatiskt",
+    "languageDescription": "Välj språket som används i appen",
+    "languages": {
+      "en": "English", "it": "Italiano", "fr": "Français", "es": "Español", "de": "Deutsch", "sv": "Svenska"
+    }
   },
   "logs": {
     "title": "Applikationsloggar",

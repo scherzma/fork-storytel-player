@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 import api from '../utils/api';
 import LogsModal from './LogsModal';
 import Modal from './Modal';
@@ -10,20 +10,19 @@ interface SettingsModalProps {
   onLogout: () => void;
 }
 
-function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
-  const { t, i18n } = useTranslation();
-  const [email, setEmail] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [alwaysOnTop, setAlwaysOnTop] = useState<boolean>(false);
-  const [showLogsModal, setShowLogsModal] = useState<boolean>(false);
-  const [appLanguage, setAppLanguage] = useState<string>('auto');
+function SettingsModal({isOpen, onClose, onLogout}: SettingsModalProps) {
+  const {t, i18n} = useTranslation();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [alwaysOnTop, setAlwaysOnTop] = useState(false);
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [appLanguage, setAppLanguage] = useState('auto');
 
   useEffect(() => {
-    if (isOpen) {
-      fetchAccountInfo();
-      fetchAlwaysOnTopSetting();
-      fetchAppLanguage();
-    }
+    if (!isOpen) return;
+    void fetchAccountInfo();
+    void fetchAlwaysOnTopSetting();
+    void fetchAppLanguage();
   }, [isOpen]);
 
   const fetchAccountInfo = async () => {
@@ -40,21 +39,15 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
   const fetchAlwaysOnTopSetting = async () => {
     try {
-      if (window.electronWindow) {
-        const isOnTop = await window.electronWindow.isAlwaysOnTop();
-        setAlwaysOnTop(isOnTop);
-      }
+      if (window.electronWindow) setAlwaysOnTop(await window.electronWindow.isAlwaysOnTop());
     } catch (error) {
       console.error('Failed to fetch always on top setting:', error);
     }
   };
-  
+
   const fetchAppLanguage = async () => {
     try {
-      if (window.electronStore) {
-        const lang = await window.electronStore.get('appLanguage');
-        setAppLanguage(lang || 'auto');
-      }
+      if (window.electronStore) setAppLanguage(await window.electronStore.get('appLanguage') || 'auto');
     } catch (error) {
       console.error('Failed to fetch app language setting:', error);
     }
@@ -62,188 +55,120 @@ function SettingsModal({ isOpen, onClose, onLogout }: SettingsModalProps) {
 
   const handleAlwaysOnTopToggle = async () => {
     try {
-      if (window.electronWindow) {
-        const newValue = !alwaysOnTop;
-        await window.electronWindow.setAlwaysOnTop(newValue);
-        setAlwaysOnTop(newValue);
-      }
+      if (!window.electronWindow) return;
+      const newValue = !alwaysOnTop;
+      await window.electronWindow.setAlwaysOnTop(newValue);
+      setAlwaysOnTop(newValue);
     } catch (error) {
       console.error('Failed to toggle always on top:', error);
     }
   };
-  
-  const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLang = e.target.value;
-    setAppLanguage(newLang);
-    
+
+  const handleLanguageChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLanguage = event.target.value;
+    setAppLanguage(newLanguage);
     try {
-      if (window.electronLocale?.setLocale) {
-        await window.electronLocale.setLocale(newLang);
-        
-        if (newLang === 'auto') {
-          // Re-trigger auto detection in frontend
-          const electronLocale = await window.electronLocale.getLocale();
-          const languageCode = electronLocale.split('-')[0];
-          const supported = ['en', 'it', 'fr', 'es', 'de', 'sv'];
-          if (supported.includes(languageCode)) {
-            i18n.changeLanguage(languageCode);
-          } else {
-            i18n.changeLanguage('en');
-          }
-        } else {
-          i18n.changeLanguage(newLang);
-        }
+      if (!window.electronLocale?.setLocale) return;
+      await window.electronLocale.setLocale(newLanguage);
+      if (newLanguage !== 'auto') {
+        await i18n.changeLanguage(newLanguage);
+        return;
       }
+      const electronLocale = await window.electronLocale.getLocale();
+      const languageCode = electronLocale.split('-')[0];
+      const supported = ['en', 'it', 'fr', 'es', 'de', 'sv'];
+      await i18n.changeLanguage(supported.includes(languageCode) ? languageCode : 'en');
     } catch (error) {
       console.error('Failed to change language:', error);
     }
   };
 
-  const handleGithubClick = () => {
-    window.open('https://github.com/debba/storytel-player', '_blank', 'noopener,noreferrer');
-  };
-
-  const handleDiscordClick = () => {
-    window.open('https://discord.gg/YrZPHAwMSG', '_blank', 'noopener,noreferrer');
-  };
-
   if (!isOpen) return null;
+
+  const externalLinks = [
+    {label: t('settings.githubRepo'), href: 'https://github.com/debba/storytel-player'},
+    {label: t('settings.discordCommunity'), href: 'https://discord.gg/YrZPHAwMSG'},
+  ];
 
   return (
     <>
-    <Modal isOpen={isOpen} onClose={onClose} title={t('settings.title')}>
-      <div className="flex flex-col">
-
-        {/* Appearance Section */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
-            {t('settings.appearance')}
-          </h3>
-          <div className="border-t border-white/10 mb-3"></div>
-          <div className="bg-white/[0.045] rounded-lg p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="text-white font-medium mb-1">
-                  {t('settings.alwaysOnTop')}
+      <Modal isOpen={isOpen} onClose={onClose} title={t('settings.title')} maxWidth="max-w-3xl">
+        <div className="space-y-7">
+          <section>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/15 text-orange-300">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42M7.06 16.94l-1.42 1.42M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>
+              </span>
+              <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-white/55">{t('settings.appearance')}</h3>
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035]">
+              <div className="flex items-center justify-between gap-6 p-5">
+                <div>
+                  <p className="font-semibold text-white">{t('settings.alwaysOnTop')}</p>
+                  <p className="mt-1 text-sm leading-5 text-white/45">{t('settings.alwaysOnTopDescription')}</p>
                 </div>
-                <div className="text-sm text-white/50">
-                  {t('settings.alwaysOnTopDescription')}
-                </div>
+                <button type="button" role="switch" aria-checked={alwaysOnTop} onClick={handleAlwaysOnTopToggle} className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition focus:outline-none focus:ring-4 focus:ring-orange-500/20 ${alwaysOnTop ? 'bg-orange-500' : 'bg-white/15'}`}>
+                  <span className={`h-5 w-5 rounded-full bg-white shadow-md transition-transform ${alwaysOnTop ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
               </div>
-              <button
-                onClick={handleAlwaysOnTopToggle}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#17191e] ${
-                  alwaysOnTop ? 'bg-orange-500' : 'bg-white/15'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    alwaysOnTop ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
+              <div className="flex flex-col gap-4 border-t border-white/[0.07] p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-white">{t('settings.language')}</p>
+                  <p className="mt-1 text-sm leading-5 text-white/45">{t('settings.languageDescription')}</p>
+                </div>
+                <select value={appLanguage} onChange={handleLanguageChange} className="h-11 min-w-44 rounded-xl border border-white/10 bg-[#101116] px-3 text-sm font-semibold text-white outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10">
+                  <option value="auto">{t('settings.languageAuto')}</option>
+                  <option value="en">{t('settings.languages.en')}</option>
+                  <option value="it">{t('settings.languages.it')}</option>
+                  <option value="fr">{t('settings.languages.fr')}</option>
+                  <option value="es">{t('settings.languages.es')}</option>
+                  <option value="de">{t('settings.languages.de')}</option>
+                  <option value="sv">{t('settings.languages.sv')}</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <section>
+              <h3 className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-white/55">{t('settings.community')}</h3>
+              <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2">
+                {externalLinks.map(item => (
+                  <button key={item.href} type="button" onClick={() => window.open(item.href, '_blank', 'noopener,noreferrer')} className="flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-sm font-semibold text-white/80 transition hover:bg-white/[0.07] hover:text-white">
+                    {item.label}
+                    <svg className="h-4 w-4 text-white/35" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5h5v5m0-5-9 9M5 9v10h10"/></svg>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-white/55">{t('settings.developer')}</h3>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-2">
+                <button type="button" onClick={() => setShowLogsModal(true)} className="flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-sm font-semibold text-white/80 transition hover:bg-white/[0.07] hover:text-white">
+                  {t('settings.viewLogs')}
+                  <svg className="h-4 w-4 text-white/35" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M7 3h10a2 2 0 0 1 2 2v14H5V5a2 2 0 0 1 2-2Zm2 5h6m-6 4h6m-6 4h4"/></svg>
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <section>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-white/55">{t('settings.account')}</h3>
+            <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-gradient-to-r from-white/[0.05] to-white/[0.025] p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/35">{t('settings.email')}</p>
+                <p className="mt-1 truncate font-semibold text-white">{loading ? t('common.loading') : email || '-'}</p>
+              </div>
+              <button type="button" onClick={onLogout} className="h-11 shrink-0 rounded-xl border border-red-300/20 bg-red-500/10 px-5 text-sm font-bold text-red-200 transition hover:bg-red-500/20 focus:outline-none focus:ring-4 focus:ring-red-500/15">
+                {t('settings.logout')}
               </button>
             </div>
-            
-            <div className="flex items-center justify-between pt-4 border-t border-white/10">
-              <div className="text-white font-medium">
-                {t('settings.language', 'Language')}
-              </div>
-              <select
-                value={appLanguage}
-                onChange={handleLanguageChange}
-                className="border border-white/10 bg-black/25 text-white rounded-lg px-3 py-1.5 outline-none focus:border-orange-400"
-              >
-                <option value="auto">{t('settings.languageAuto', 'Auto')}</option>
-                <option value="en">English</option>
-                <option value="it">Italiano</option>
-                <option value="fr">Français</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
-                <option value="sv">Svenska</option>
-              </select>
-            </div>
-          </div>
+          </section>
         </div>
+      </Modal>
 
-        {/* Community Section */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
-            {t('settings.community')}
-          </h3>
-          <div className="border-t border-white/10 mb-3"></div>
-          <div className="space-y-2">
-            <button
-              onClick={handleGithubClick}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.045] hover:bg-white/10 text-white rounded-lg transition-colors"
-            >
-              <span>{t('settings.githubRepo')}</span>
-              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-
-            <button
-              onClick={handleDiscordClick}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.045] hover:bg-white/10 text-white rounded-lg transition-colors"
-            >
-              <span>{t('settings.discordCommunity')}</span>
-              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Developer Section */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
-            {t('settings.developer', 'Developer')}
-          </h3>
-          <div className="border-t border-white/10 mb-3"></div>
-          <div className="space-y-2">
-            <button
-              onClick={() => setShowLogsModal(true)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.045] hover:bg-white/10 text-white rounded-lg transition-colors"
-            >
-              <span>{t('settings.viewLogs', 'View Session Logs')}</span>
-              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Account Section */}
-        <div>
-          <h3 className="text-sm font-semibold text-white/50 uppercase mb-3">
-            {t('settings.account')}
-          </h3>
-          <div className="border-t border-white/10 mb-3"></div>
-          
-          {/* Account Info */}
-          <div className="bg-white/[0.045] rounded-lg p-4 mb-3">
-            <div className="flex flex-col">
-              <span className="text-sm text-white/50 mb-1">{t('settings.email')}</span>
-              <span className="text-white font-medium">
-                {loading ? t('common.loading') : email || '-'}
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={onLogout}
-            className="w-full px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold transition-colors"
-          >
-            {t('settings.logout')}
-          </button>
-        </div>
-      </div>
-    </Modal>
-      
-    <LogsModal
-      isOpen={showLogsModal}
-      onClose={() => setShowLogsModal(false)}
-    />
+      <LogsModal isOpen={showLogsModal} onClose={() => setShowLogsModal(false)} />
     </>
   );
 }

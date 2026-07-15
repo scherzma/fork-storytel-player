@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const Modal: React.FC<ModalProps> = ({
   maxWidth = 'max-w-md',
   zIndex = 50
 }) => {
+  const {t} = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -48,8 +50,9 @@ const Modal: React.FC<ModalProps> = ({
                     {headerActions && <div className="mx-1 my-auto h-6 w-px bg-white/10"></div>}
                     <button
                       onClick={onClose}
+                      aria-label={t('common.close')}
                       className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
-                      title="Close"
+                      title={t('common.close')}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

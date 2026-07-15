@@ -82,6 +82,28 @@ input[type="range"].slider:focus-visible {
     box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.25);
 }
 
+input[type="range"].compact-player-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: #fff;
+    border: 2px solid #f97316;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+input[type="range"].compact-player-progress:hover::-webkit-slider-thumb,
+input[type="range"].compact-player-progress:focus-visible::-webkit-slider-thumb {
+    opacity: 1;
+    transform: scale(1.1);
+}
+input[type="range"].compact-player-progress:focus-visible {
+    outline: 2px solid rgba(251, 146, 60, 0.85);
+    outline-offset: 2px;
+}
+
 @keyframes marquee-scroll {
     0% {
         transform: translateX(0);

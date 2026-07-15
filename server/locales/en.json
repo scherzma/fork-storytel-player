@@ -54,8 +54,14 @@
   "discover": {
     "title": "Discover books",
     "eyebrow": "Explore Storytel",
-    "subtitle": "Search the Storytel catalog by title, author, or narrator.",
-    "placeholder": "Title, author, or narrator",
+    "subtitle": "Search the Storytel catalog by title, author, narrator, or series.",
+    "placeholder": "Title, author, narrator, or series",
+    "searchContext": {
+      "author": "Books by or featuring {{name}}",
+      "narrator": "Books narrated by {{name}}",
+      "series": "Series: {{name}}",
+      "category": "{{name}} audiobooks"
+    },
     "search": "Search",
     "searching": "Searching...",
     "prompt": "Find your next audiobook",
@@ -91,7 +97,10 @@
     "loadingBookData": "Loading book data...",
     "loadError": "Failed to load audio stream",
     "loadChaptersError": "Failed to load chapters",
-    "loadBookmarksError": "Failed to load bookmarks"
+    "loadBookmarksError": "Failed to load bookmarks",
+    "skipBackward": "Go back 15 seconds",
+    "skipForward": "Skip ahead 15 seconds",
+    "openFullPlayer": "Open full player"
   },
   "bookmarks": {
     "title": "Your Bookmarks",
@@ -125,7 +134,8 @@
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",
-    "close": "Close"
+    "close": "Close",
+    "back": "Back"
   },
   "bookCard": {
     "open": "Open {{title}}",
@@ -139,9 +149,15 @@
   "bookView": {
     "saved": "Saved",
     "listen": "Listen",
+    "resume": "Resume",
     "language": "Language",
     "duration": "Duration",
     "category": "Category",
+    "series": "Series:",
+    "searchAuthor": "Search for books by {{name}}",
+    "searchNarrator": "Search for books narrated by {{name}}",
+    "searchSeries": "Search series {{name}}",
+    "searchCategory": "Search {{name}} audiobooks",
     "noDescription": "No description available.",
     "showMore": "show more",
     "showLess": "show less",
@@ -230,7 +246,11 @@
     "developer": "Developer",
     "viewLogs": "View Session Logs",
     "language": "Language",
-    "languageAuto": "Auto"
+    "languageAuto": "Automatic",
+    "languageDescription": "Choose the language used throughout the app",
+    "languages": {
+      "en": "English", "it": "Italiano", "fr": "Français", "es": "Español", "de": "Deutsch", "sv": "Svenska"
+    }
   },
   "logs": {
     "title": "Application Logs",

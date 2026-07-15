@@ -12,49 +12,86 @@ import PlayerControls from "./PlayerControls";
 import BookInfo from "./BookInfo";
 import DownloadCancelModal from "./DownloadCancelModal";
 import {BookShelfEntity} from "../interfaces/books";
-import {useAudioPlayer} from "../hooks/useAudioPlayer";
 import {useBookmarks} from "../hooks/useBookmarks";
 import {useChapters} from "../hooks/useChapters";
 import {useGotoModal} from "../hooks/useGotoModal";
 import {truncateTitle} from '../utils/helpers';
 import "../types/window.d.ts";
 import api, { trackAction } from "../utils/api";
+import {usePlayer} from '../contexts/PlayerContext';
+import {buildCatalogSearchPath, CatalogSearchSource} from '../utils/catalogSearch';
 
-function PlayerView() {
+interface PlayerViewProps {
+    isOverlay?: boolean;
+    onClose?: () => void;
+}
+
+function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
     const {t} = useTranslation();
-    const {bookId} = useParams();
+    const {bookId: routeBookId} = useParams();
     const location = useLocation();
     const navigate = useNavigate();
 
-    const book: BookShelfEntity = location.state?.book;
+    const routeBook: BookShelfEntity | undefined = location.state?.book;
     const returnTo: string = location.state?.returnTo || '/';
+
+    const {
+        activeBook,
+        activeBookId,
+        startPlayback,
+        playbackRate,
+        setPlaybackRate,
+        playerError,
+        audio: audioPlayer,
+    } = usePlayer();
+    const bookId = routeBookId || activeBookId || undefined;
+    const book = activeBookId === bookId ? activeBook : routeBook;
 
     const [error, setError] = useState('');
     const [isLoadingBookData, setIsLoadingBookData] = useState(true);
-    const [playbackRate, setPlaybackRate] = useState(1.0);
     const [showPlaybackSpeedModal, setShowPlaybackSpeedModal] = useState(false);
-    const [showKeyOverlay, setShowKeyOverlay] = useState<'play' | 'pause' | 'forward' | 'backward' | null>(null);
     const [isDownloaded, setIsDownloaded] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [showDownloadCancelModal, setShowDownloadCancelModal] = useState(false);
 
-    // Audio player hook
-    const audioPlayer = useAudioPlayer({
-        bookId,
-        consumableId: book?.book?.consumableId,
-        playbackRate,
-        onLoadError: setError,
-    });
+    const closePlayer = () => {
+        if (onClose) {
+            onClose();
+            return;
+        }
+        navigate(returnTo, {
+            state: routeBook && returnTo.startsWith('/book/') ? {book: routeBook, returnTo: '/'} : undefined,
+        });
+    };
+
+    const searchCatalog = (query: string, source: CatalogSearchSource) => {
+        if (!query.trim()) return;
+        onClose?.();
+        navigate(buildCatalogSearchPath(query, source));
+    };
+
+    useEffect(() => {
+        if (!isOverlay) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isOverlay]);
+
+    useEffect(() => {
+        if (routeBook && bookId && activeBookId !== bookId) startPlayback(routeBook, bookId);
+    }, [routeBook, bookId, activeBookId, startPlayback]);
 
     // Bookmarks hook
     const bookmarks = useBookmarks({
-        consumableId: book?.book?.consumableId,
+        consumableId: book?.book?.consumableId || '',
         onError: setError,
     });
 
     // Chapters hook
     const chapters = useChapters({
-        consumableId: book?.book?.consumableId,
+        consumableId: book?.book?.consumableId || '',
         currentTime: audioPlayer.currentTime,
         onError: setError,
     });
@@ -88,10 +125,6 @@ function PlayerView() {
 
         return () => {
             document.title = 'Storytel Player';
-            // Clear tray when leaving PlayerView
-            if (window.trayControls && window.trayControls.updatePlayingState) {
-                window.trayControls.updatePlayingState(false, null);
-            }
         };
     }, [book]);
 
@@ -178,123 +211,34 @@ function PlayerView() {
     // Playback rate change handler
     const handlePlaybackRateChange = (newRate: number) => {
         setPlaybackRate(newRate);
-        if (audioPlayer.audioRef.current) {
-            audioPlayer.audioRef.current.playbackRate = newRate;
-        }
         setShowPlaybackSpeedModal(false);
     };
 
-    // Tray event listeners
-    useEffect(() => {
-        if (window.trayControls) {
-            window.trayControls.onPlayPause?.(() => {
-                audioPlayer.handlePlayPause();
-            });
-
-            window.trayControls.onSetSpeed?.((_event: any, speed: number) => {
-                handlePlaybackRateChange(speed);
-            });
-        }
-    }, [audioPlayer.handlePlayPause]);
-
-    // Update tray with current playing state and book title
-    useEffect(() => {
-        if (window.trayControls && window.trayControls.updatePlayingState) {
-            const bookTitle = book?.book?.name || null;
-            window.trayControls.updatePlayingState(audioPlayer.isPlaying, bookTitle);
-        }
-    }, [audioPlayer.isPlaying, book]);
-
-    // Keyboard shortcuts handler
-    useEffect(() => {
-        const handleKeyPress = (event: KeyboardEvent) => {
-            if (event.target !== document.body) return;
-
-            switch (event.code) {
-                case 'Space':
-                    event.preventDefault();
-                    setShowKeyOverlay(audioPlayer.isPlaying ? 'pause' : 'play');
-                    audioPlayer.handlePlayPause();
-                    setTimeout(() => setShowKeyOverlay(null), 1000);
-                    break;
-                case 'ArrowLeft':
-                    event.preventDefault();
-                    audioPlayer.skipBackward();
-                    setShowKeyOverlay('backward');
-                    setTimeout(() => setShowKeyOverlay(null), 1000);
-                    break;
-                case 'ArrowRight':
-                    event.preventDefault();
-                    audioPlayer.skipForward();
-                    setShowKeyOverlay('forward');
-                    setTimeout(() => setShowKeyOverlay(null), 1000);
-                    break;
-            }
-        };
-
-        document.addEventListener('keydown', handleKeyPress);
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyPress);
-        };
-    }, [audioPlayer.handlePlayPause, audioPlayer.skipForward, audioPlayer.skipBackward, audioPlayer.isPlaying]);
-
 
     if (audioPlayer.isLoading || isLoadingBookData) {
-        return <LoadingState message={audioPlayer.isLoading ? t('player.loadingAudio') : t('player.loadingBookData')}/>;
+        const loadingState = <LoadingState message={audioPlayer.isLoading ? t('player.loadingAudio') : t('player.loadingBookData')}/>;
+        return isOverlay ? <div className="fixed inset-0 z-50 overflow-y-auto">{loadingState}</div> : loadingState;
     }
 
-    if (error) {
-        return <ErrorState error={error} onRetry={() => navigate('/')}/>;
+    if (error || playerError || !book) {
+        const errorState = <ErrorState error={error || playerError || t('common.error')} onRetry={closePlayer}/>;
+        return isOverlay ? <div className="fixed inset-0 z-50 overflow-y-auto">{errorState}</div> : errorState;
     }
 
     return (
-        <div className="relative flex min-h-screen flex-col bg-[#0d0e11] text-white">
+        <div
+            className={`${isOverlay ? 'fixed inset-0 z-50 overflow-y-auto' : 'relative min-h-screen'} flex flex-col bg-[#0d0e11] text-white`}
+            role={isOverlay ? 'dialog' : undefined}
+            aria-modal={isOverlay ? true : undefined}
+            aria-label={isOverlay ? t('player.nowPlaying') : undefined}
+        >
             <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
                 <div className="absolute -left-40 -top-48 h-[34rem] w-[34rem] rounded-full bg-orange-600/10 blur-3xl" />
                 <div className="absolute bottom-[-10rem] right-[-10rem] h-[30rem] w-[30rem] rounded-full bg-amber-300/5 blur-3xl" />
             </div>
-            <Navbar barTitle={t('player.nowPlaying')} onBackClick={() => navigate(`/book/${bookId}`, {state: {book, returnTo}})}>
+            <Navbar barTitle={t('player.nowPlaying')} onBackClick={closePlayer}>
                 <span>{book.book.name}</span>
             </Navbar>
-
-            {/* Keyboard Overlay */}
-            {showKeyOverlay && (
-                <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
-                    <div className="rounded-full border border-white/10 bg-black/70 p-8 backdrop-blur-md">
-                        <svg
-                            className="w-16 h-16 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            {showKeyOverlay === 'play' && (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                            )}
-                            {showKeyOverlay === 'pause' && (
-                                <>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                          d="M10 9v6M14 9v6"/>
-                                </>
-                            )}
-                            {showKeyOverlay === 'backward' && (
-                                <>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                          d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"/>
-                                </>
-                            )}
-                            {showKeyOverlay === 'forward' && (
-                                <>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                          d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"/>
-                                </>
-                            )}
-                        </svg>
-                    </div>
-                </div>
-            )}
 
             <main className="relative mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-10 sm:px-8 lg:px-10">
                 {/* Book Info */}
@@ -310,20 +254,9 @@ function PlayerView() {
                     onCancelDownload={handleDownloadClick}
                     isDownloaded={isDownloaded}
                     isDownloading={isDownloading}
+                    onSearchCatalog={searchCatalog}
                 />
             </main>
-
-            {/* Audio Element */}
-            <audio
-                ref={audioPlayer.audioRef}
-                src={audioPlayer.audioSrc || undefined}
-                onTimeUpdate={audioPlayer.handleTimeUpdate}
-                onLoadedMetadata={audioPlayer.handleLoadedMetadata}
-                onPlay={audioPlayer.handlePlay}
-                onPause={audioPlayer.handlePause}
-                onRateChange={audioPlayer.handleRateChange}
-                className="hidden"
-            />
 
             {/* Player Controls docked at the bottom */}
             <footer className="sticky bottom-0 z-30 border-t border-white/[0.07] bg-[#101116]/85 backdrop-blur-xl">

@@ -12,9 +12,9 @@ declare global {
       updateSpeed?: (speed: number) => void;
       on?: (event: string, callback: (...args: any[]) => void) => void;
       off?: (event: string) => void;
-      onPlayPause?: (callback: () => void) => void;
-      onSetSpeed?: (callback: (event: any, speed: number) => void) => void;
-      onLogout?: (callback: () => void) => void;
+      onPlayPause?: (callback: () => void) => (() => void);
+      onSetSpeed?: (callback: (event: any, speed: number) => void) => (() => void);
+      onLogout?: (callback: () => void) => (() => void);
     };
     electronLocale?: {
       getLocale: () => Promise<string>;

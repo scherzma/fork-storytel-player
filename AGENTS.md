@@ -9,7 +9,7 @@
 - **Backend**: Fastify 5 + TypeScript
 - **Desktop**: Electron 38+
 - **Internationalization**: i18next (multi-language support)
-- **State Management**: electron-store for persistent storage
+- **State Management**: React context for shared runtime state and electron-store for persistent storage
 - **Build Tools**: Vite, esbuild, electron-builder
 
 ### Architecture
@@ -94,6 +94,9 @@ storytel-player/
 ### State Management
 
 - **Local State**: React hooks (useState, useEffect, etc.)
+- **Shared Runtime State**: React contexts in `client/src/contexts/`
+- **Playback State**: `PlayerProvider` owns the single audio element and active playback session; route components must consume that state instead of creating another player
+- **Expanded Player**: Present expanded playback as an overlay so the current browsing route and its state remain mounted
 - **Persistent Storage**: Use `electron-store` via IPC for desktop persistence
 - **API State**: Direct API calls via Axios (see `client/src/utils/api.ts`)
 

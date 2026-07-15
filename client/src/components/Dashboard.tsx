@@ -2,13 +2,11 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import api from '../utils/api';
-import storage from '../utils/storage';
 import BookCard from './BookCard';
 import ErrorState from './ErrorState';
 import DashboardHeader from './DashboardHeader';
 import {BookShelfEntity, BookShelfResponse} from '../interfaces/books';
-
-type ViewMode = 'grid' | 'list';
+import {useBrowseState} from '../contexts/BrowseStateContext';
 
 interface DashboardProps {
     onLogout: () => void;
@@ -19,20 +17,25 @@ interface DashboardProps {
 function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) {
     const {t} = useTranslation();
     const navigate = useNavigate();
-    const [books, setBooks] = useState<BookShelfEntity[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const {
+        libraryBooks: books,
+        setLibraryBooks: setBooks,
+        libraryLoaded,
+        setLibraryLoaded,
+        libraryFilter: filterStatus,
+        setLibraryFilter: setFilterStatus,
+        libraryQuery: searchQuery,
+        setLibraryQuery: setSearchQuery,
+        libraryViewMode: viewMode,
+        setLibraryViewMode,
+    } = useBrowseState();
+    const [isLoading, setIsLoading] = useState(!libraryLoaded);
     const [error, setError] = useState('');
-    const [filterStatus, setFilterStatus] = useState(-1);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<ViewMode>('grid');
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         window.scrollTo({top: 0, left: 0});
-        void loadBookshelf();
-        void storage.get('libraryViewMode').then(saved => {
-            if (saved === 'list' || saved === 'grid') setViewMode(saved);
-        });
+        if (!libraryLoaded) void loadBookshelf();
         const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
                 event.preventDefault();
@@ -68,10 +71,12 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
             setIsLoading(true);
             const response = await api.get<BookShelfResponse>('/bookshelf');
             setBooks(response.data.books || []);
+            setLibraryLoaded(true);
         } catch (requestError: any) {
             try {
                 const offline = await api.get<BookShelfResponse>('/offline/bookshelf');
                 setBooks(offline.data?.books || []);
+                setLibraryLoaded(true);
             } catch {
                 setError(requestError.response?.data?.error || t('dashboard.loadError'));
             }
@@ -81,13 +86,10 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
     };
 
     const handleBookSelect = (book: BookShelfEntity) => {
-        navigate(`/book/${book.abook?.id}`, {state: {book}});
+        navigate(`/book/${book.abook?.id}`, {state: {book, returnTo: '/'}});
     };
 
-    const changeViewMode = (mode: ViewMode) => {
-        setViewMode(mode);
-        void storage.set('libraryViewMode', mode);
-    };
+    const changeViewMode = setLibraryViewMode;
 
     const filters = [
         {status: -1, label: 'dashboard.filters.all', count: counts.all},

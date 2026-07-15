@@ -8,7 +8,7 @@ declare global {
 }
 
 const axiosApi = axios.create({
-    baseURL: `${import.meta.env.VITE_BACKEND_API_URL}/api`, // o la tua baseURL reale
+    baseURL: `${import.meta.env.VITE_BACKEND_API_URL || ''}/api`,
     withCredentials: true,
     timeout: 30000
 });

@@ -46,9 +46,11 @@ interface UseAudioPlayerProps {
 export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}: UseAudioPlayerProps) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const positionUpdateIntervalRef = useRef<any>(null);
+    const loadedConsumableIdRef = useRef('');
+    const streamRequestRef = useRef(0);
 
     const [audioSrc, setAudioSrc] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -57,26 +59,35 @@ export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}
     const [previousVolume, setPreviousVolume] = useState(1);
 
     const loadAudioStream = useCallback(async () => {
+        const requestId = ++streamRequestRef.current;
         try {
             setIsLoading(true);
+            setAudioSrc(null);
+            setCurrentTime(0);
+            setDuration(0);
             const response = await api.post('/stream', {bookId, consumableId});
+            if (requestId !== streamRequestRef.current) return;
+            loadedConsumableIdRef.current = consumableId;
             setAudioSrc(response.data.streamUrl);
         } catch (err: any) {
-            onLoadError(err.response?.data?.error || 'Failed to load audio');
+            if (requestId === streamRequestRef.current) {
+                onLoadError(err.response?.data?.error || 'Failed to load audio');
+            }
         } finally {
-            setIsLoading(false);
+            if (requestId === streamRequestRef.current) setIsLoading(false);
         }
     }, [bookId, consumableId, onLoadError]);
 
     const updatePosition = useCallback(async () => {
-        if (!audioRef.current || !consumableId) return;
+        const positionConsumableId = loadedConsumableIdRef.current || consumableId;
+        if (!audioRef.current || !positionConsumableId) return;
 
         const position = Math.floor(audioRef.current.currentTime * 1000);
         // Always persist locally first so offline listening is not lost.
-        await writeLocalPosition(consumableId, position);
+        await writeLocalPosition(positionConsumableId, position);
 
         try {
-            await api.put(`/bookmark-positional/${consumableId}`, {position});
+            await api.put(`/bookmark-positional/${positionConsumableId}`, {position});
         } catch (error) {
             console.warn('Failed to sync position to API, kept locally', error);
         }
@@ -214,6 +225,7 @@ export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}
 
     useEffect(() => {
         if (bookId) {
+            audioRef.current?.pause();
             loadAudioStream();
         }
     }, [bookId, loadAudioStream]);

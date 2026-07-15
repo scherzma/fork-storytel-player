@@ -3,6 +3,7 @@ import {useTranslation} from 'react-i18next';
 import {buildCoverUrl, formatTimeNatural} from '../utils/helpers';
 import {BookShelfEntity} from '../interfaces/books';
 import {Chapter} from '../interfaces/chapters';
+import {CatalogSearchSource, getAuthorNames, getSeriesNames} from '../utils/catalogSearch';
 
 interface BookInfoProps {
     book: BookShelfEntity;
@@ -22,6 +23,7 @@ interface BookInfoProps {
     onCancelDownload: () => void;
     isDownloaded: boolean;
     isDownloading: boolean;
+    onSearchCatalog: (query: string, source: CatalogSearchSource) => void;
 }
 
 const BookInfo: React.FC<BookInfoProps> = ({
@@ -36,11 +38,14 @@ const BookInfo: React.FC<BookInfoProps> = ({
                                                onCancelDownload,
                                                isDownloaded,
                                                isDownloading,
+                                               onSearchCatalog,
                                            }) => {
     const {t} = useTranslation();
 
     const secondaryButton =
         'flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] px-4 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400';
+    const authorNames = getAuthorNames(book);
+    const seriesNames = getSeriesNames(book);
 
     return (
         <div className="grid w-full gap-9 lg:grid-cols-[minmax(0,18rem)_1fr] lg:items-center lg:gap-14">
@@ -59,16 +64,58 @@ const BookInfo: React.FC<BookInfoProps> = ({
             {/* Metadata + actions */}
             <div className="min-w-0 text-center lg:text-left">
                 {book.book.category?.title && (
-                    <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-orange-300">
+                    <button
+                        type="button"
+                        onClick={() => onSearchCatalog(book.book.category.title, 'category')}
+                        aria-label={t('bookView.searchCategory', {name: book.book.category.title})}
+                        className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-orange-300 transition hover:text-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    >
                         {book.book.category.title}
-                    </p>
+                    </button>
                 )}
                 <h2 className="mb-3 break-words text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                     {book.book.name}
                 </h2>
-                <p className="mb-7 text-sm text-white/55">
-                    {book.book.authorsAsString} • {book.abook.narratorAsString}
-                </p>
+                <div className="mb-7 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-white/55 lg:justify-start">
+                    {authorNames.map((author, index) => (
+                        <React.Fragment key={author}>
+                            {index > 0 && <span aria-hidden="true">•</span>}
+                            <button
+                                type="button"
+                                onClick={() => onSearchCatalog(author, 'author')}
+                                aria-label={t('bookView.searchAuthor', {name: author})}
+                                className="font-semibold text-white/75 underline decoration-white/20 underline-offset-4 transition hover:text-orange-300 hover:decoration-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            >
+                                {author}
+                            </button>
+                        </React.Fragment>
+                    ))}
+                    <span aria-hidden="true">•</span>
+                    <button
+                        type="button"
+                        onClick={() => onSearchCatalog(book.abook.narratorAsString, 'narrator')}
+                        aria-label={t('bookView.searchNarrator', {name: book.abook.narratorAsString})}
+                        className="font-semibold text-white/75 underline decoration-white/20 underline-offset-4 transition hover:text-orange-300 hover:decoration-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    >
+                        {book.abook.narratorAsString}
+                    </button>
+                </div>
+
+                {seriesNames.length > 0 && (
+                    <div className="mb-7 flex flex-wrap justify-center gap-2 lg:justify-start">
+                        {seriesNames.map(series => (
+                            <button
+                                key={series}
+                                type="button"
+                                onClick={() => onSearchCatalog(series, 'series')}
+                                aria-label={t('bookView.searchSeries', {name: series})}
+                                className="rounded-full border border-orange-300/20 bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-200 transition hover:border-orange-300/40 hover:bg-orange-500/20 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            >
+                                {t('bookView.series')}{' '}{series}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 {currentChapter && (
                     <div className="mb-7 rounded-2xl border border-white/10 bg-white/[0.035] px-5 py-4 text-left">

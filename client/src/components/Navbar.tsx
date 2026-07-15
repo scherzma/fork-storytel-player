@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
 interface NavbarProps {
     barTitle: string;
@@ -7,6 +8,7 @@ interface NavbarProps {
 }
 
 function Navbar({onBackClick, barTitle, children}: NavbarProps) {
+    const {t} = useTranslation();
 
     const titleRef = useRef<HTMLDivElement>(null);
     const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -25,6 +27,8 @@ function Navbar({onBackClick, barTitle, children}: NavbarProps) {
                 <div className="flex h-[4.5rem] items-center gap-4">
                     <button
                         onClick={onBackClick}
+                        aria-label={t('common.back')}
+                        title={t('common.back')}
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.045] text-white/65 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
                     >
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

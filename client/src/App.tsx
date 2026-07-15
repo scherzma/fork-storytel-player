@@ -16,6 +16,10 @@ import BookView from "./components/BookView";
 import WelcomeModal from "./components/WelcomeModal";
 import LogsModal from "./components/LogsModal";
 import Discover from "./components/Discover";
+import CompactPlayer from "./components/CompactPlayer";
+import ExpandedPlayerOverlay from "./components/ExpandedPlayerOverlay";
+import {BrowseStateProvider} from "./contexts/BrowseStateContext";
+import {PlayerProvider} from "./contexts/PlayerContext";
 
 const useMemoryRouter =
   import.meta.env.VITE_REACT_APP_USE_MEMORY_ROUTER === "true";
@@ -34,11 +38,9 @@ function App() {
     checkAuthStatus();
 
     // Listen for logout event from tray
-    if (window.trayControls?.onLogout) {
-      window.trayControls.onLogout(() => {
+    const removeTrayLogout = window.trayControls?.onLogout?.(() => {
         setTriggerLogout(true);
-      });
-    }
+    });
 
     // Keyboard shortcut Ctrl+Alt+D to open logs modal
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,7 +49,10 @@ function App() {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      removeTrayLogout?.();
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   useEffect(() => {
@@ -131,8 +136,10 @@ function App() {
 
   return (
     <Router>
-      <div className="scrollable min-h-screen bg-[#0d0e11]">
-        <Routes>
+      <BrowseStateProvider key={isAuthenticated ? 'authenticated' : 'guest'}>
+      <PlayerProvider enabled={isAuthenticated}>
+        <div className="scrollable min-h-screen bg-[#0d0e11]">
+          <Routes>
           <Route
             path="/login"
             element={
@@ -187,7 +194,9 @@ function App() {
               isAuthenticated ? <BookView /> : <Navigate to="/login" replace />
             }
           />
-        </Routes>
+          </Routes>
+          {isAuthenticated && <CompactPlayer />}
+          {isAuthenticated && <ExpandedPlayerOverlay />}
         {isAuthenticated && (
           <WelcomeModal
             isOpen={showWelcomeModal}
@@ -198,7 +207,9 @@ function App() {
           isOpen={showLogsModal}
           onClose={() => setShowLogsModal(false)}
         />
-      </div>
+        </div>
+      </PlayerProvider>
+      </BrowseStateProvider>
     </Router>
   );
 }

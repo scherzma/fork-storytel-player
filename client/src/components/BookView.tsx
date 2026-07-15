@@ -8,12 +8,21 @@ import Navbar from './Navbar';
 import {buildCoverUrl, localizedLanguageName, truncateTitle} from '../utils/helpers';
 import api from '../utils/api';
 import "../types/window.d.ts";
+import {usePlayer} from '../contexts/PlayerContext';
+import {
+    buildCatalogSearchPath,
+    CatalogSearchSource,
+    extractSeriesNames,
+    getAuthorNames,
+    getSeriesNames,
+} from '../utils/catalogSearch';
 
 function BookView() {
     const {t, i18n} = useTranslation();
     const {bookId} = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const {activeBookId, startPlayback, audio} = usePlayer();
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -26,6 +35,7 @@ function BookView() {
     // from the per-book book-details endpoint, fetched lazily below.
     const [description, setDescription] = useState('');
     const [language, setLanguage] = useState('');
+    const [detailSeriesNames, setDetailSeriesNames] = useState<string[]>(book ? getSeriesNames(book) : []);
 
     useEffect(() => {
         if (book) {
@@ -48,6 +58,8 @@ function BookView() {
                 const data = res.data || {};
                 setDescription(data.description || '');
                 setLanguage(localizedLanguageName(data.language, i18n.language));
+                const seriesNames = extractSeriesNames(data);
+                if (seriesNames.length > 0) setDetailSeriesNames(seriesNames);
             })
             .catch(() => {
                 /* keep empty fallbacks on failure */
@@ -58,7 +70,17 @@ function BookView() {
     }, [book, i18n.language]);
 
     const handlePlayBook = () => {
-        navigate(`/player/${bookId}`, {state: {book, returnTo}});
+        if (!book || !bookId) return;
+        if (activeBookId === bookId) {
+            audio.handlePlayPause();
+        } else {
+            startPlayback(book, bookId);
+        }
+    };
+
+    const searchCatalog = (query: string, source: CatalogSearchSource) => {
+        if (!query.trim()) return;
+        navigate(buildCatalogSearchPath(query, source));
     };
 
     if (isLoading) {
@@ -94,6 +116,9 @@ function BookView() {
     };
 
     const cover = buildCoverUrl(book.book.largeCover || book.book.largeCoverE);
+    const isActiveBook = activeBookId === bookId;
+    const authorNames = getAuthorNames(book);
+    const seriesNames = detailSeriesNames.length > 0 ? detailSeriesNames : getSeriesNames(book);
     const meta = [
         {label: t('bookView.language'), value: language},
         {label: t('bookView.duration'), value: formatDuration(book.abook.time)},
@@ -128,33 +153,86 @@ function BookView() {
                         </div>
                         <button
                             onClick={handlePlayBook}
+                            disabled={isActiveBook && audio.isLoading}
                             className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-4 text-base font-bold text-white shadow-[0_10px_30px_rgba(249,115,22,0.22)] transition hover:bg-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-500/25"
                         >
-                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                            <span>{t('bookView.listen')}</span>
+                            {isActiveBook && audio.isLoading ? (
+                                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                            ) : audio.isPlaying && isActiveBook ? (
+                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+                            ) : (
+                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            )}
+                            <span>{isActiveBook && audio.isLoading
+                                ? t('player.loadingAudio')
+                                : isActiveBook && audio.isPlaying
+                                    ? t('tray.pause')
+                                    : isActiveBook
+                                        ? t('bookView.resume')
+                                        : t('bookView.listen')}</span>
                         </button>
                     </div>
 
                     {/* Details */}
                     <div className="min-w-0">
                         {book.book.category?.title && (
-                            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-orange-300">
+                            <button
+                                type="button"
+                                onClick={() => searchCatalog(book.book.category.title, 'category')}
+                                aria-label={t('bookView.searchCategory', {name: book.book.category.title})}
+                                className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-orange-300 transition hover:text-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            >
                                 {book.book.category.title}
-                            </p>
+                            </button>
                         )}
                         <h1 className="mb-4 break-words text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                             {book.book.name}
                         </h1>
 
                         <div className="mb-7 space-y-1 text-sm text-white/60">
+                            <div className="flex flex-wrap items-baseline gap-x-1.5">
+                                <span>{t('bookCard.author')}</span>
+                                {authorNames.map((author, index) => (
+                                    <React.Fragment key={author}>
+                                        {index > 0 && <span aria-hidden="true">•</span>}
+                                        <button
+                                            type="button"
+                                            onClick={() => searchCatalog(author, 'author')}
+                                            aria-label={t('bookView.searchAuthor', {name: author})}
+                                            className="font-semibold text-white/85 underline decoration-white/20 underline-offset-4 transition hover:text-orange-300 hover:decoration-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                        >
+                                            {author}
+                                        </button>
+                                    </React.Fragment>
+                                ))}
+                            </div>
                             <p>
-                                {t('bookCard.author')} <span className="font-semibold text-white/85">{book.book.authorsAsString}</span>
+                                {t('bookCard.narrator')}{' '}
+                                <button
+                                    type="button"
+                                    onClick={() => searchCatalog(book.abook.narratorAsString, 'narrator')}
+                                    aria-label={t('bookView.searchNarrator', {name: book.abook.narratorAsString})}
+                                    className="font-semibold text-white/85 underline decoration-white/20 underline-offset-4 transition hover:text-orange-300 hover:decoration-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                >
+                                    {book.abook.narratorAsString}
+                                </button>
                             </p>
-                            <p>
-                                {t('bookCard.narrator')} <span className="font-semibold text-white/85">{book.abook.narratorAsString}</span>
-                            </p>
+                            {seriesNames.length > 0 && (
+                                <div className="flex flex-wrap items-baseline gap-x-1.5">
+                                    <span>{t('bookView.series')}</span>
+                                    {seriesNames.map(series => (
+                                        <button
+                                            key={series}
+                                            type="button"
+                                            onClick={() => searchCatalog(series, 'series')}
+                                            aria-label={t('bookView.searchSeries', {name: series})}
+                                            className="font-semibold text-white/85 underline decoration-white/20 underline-offset-4 transition hover:text-orange-300 hover:decoration-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                        >
+                                            {series}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {meta.length > 0 && (

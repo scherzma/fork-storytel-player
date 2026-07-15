@@ -65,6 +65,7 @@ interface RawBookshelfModel {
   kidsBook?: boolean;
   authors?: RawBookshelfNamedEntity[];
   narrators?: RawBookshelfNamedEntity[];
+  series?: RawBookshelfNamedEntity[];
   formats?: RawBookshelfFormat[];
   category?: { id: number; name: string };
 }
@@ -85,6 +86,9 @@ interface BookShelfEntity {
   book: {
     name: string;
     authorsAsString: string;
+    authors?: Array<{ id: string; name: string }>;
+    series?: Array<{ id: string; name: string }>;
+    seriesOrder?: number;
     consumableId: string;
     largeCover: string;
     largeCoverE: string;
@@ -118,12 +122,15 @@ interface RawCatalogBook {
   abookMark?: { pos?: number } | null;
   book?: {
     authorsAsString?: string;
+    authors?: Array<{ id?: string | number; name?: string }>;
     category?: { title?: string };
     consumableId?: string | number;
     language?: { localizedName?: string };
     largeCover?: string;
     largeCoverE?: string;
     name?: string;
+    series?: Array<{ id?: string | number; name?: string }>;
+    seriesOrder?: number;
   };
   restriction?: number;
 }
@@ -434,6 +441,10 @@ class StorytelClient {
               .map((x) => x?.name)
               .filter(Boolean)
               .join(", ");
+          const namedEntities = (arr?: RawBookshelfNamedEntity[]) =>
+            (Array.isArray(arr) ? arr : [])
+              .filter((entry) => Boolean(entry?.name))
+              .map((entry) => ({ id: String(entry.id), name: entry.name.trim() }));
 
           return {
             id: model.id,
@@ -441,6 +452,8 @@ class StorytelClient {
             book: {
               name: model.title,
               authorsAsString: join(model.authors),
+              authors: namedEntities(model.authors),
+              series: namedEntities(model.series),
               consumableId: String(model.id),
               // Full absolute URL (covers.storytel.com). See note below.
               largeCover: coverUrl,
@@ -554,6 +567,12 @@ class StorytelClient {
         const candidate = Number(value);
         return Number.isFinite(candidate) && candidate >= 0 ? candidate : 0;
       };
+      const namedEntities = (value: unknown): Array<{ id: string; name: string }> =>
+        (Array.isArray(value) ? value : []).flatMap((entry) => {
+          const name = text(entry?.name);
+          if (!name) return [];
+          return [{ id: identifier(entry?.id), name }];
+        });
 
       const books = rawBooks.slice(0, 100).flatMap((entry) => {
         const rawBook = entry?.book;
@@ -574,12 +593,18 @@ class StorytelClient {
           return [];
         }
 
+        const authors = namedEntities(rawBook.authors);
+        const series = namedEntities(rawBook.series);
+
         const book: BookShelfEntity = {
           id: consumableId,
           status: 1,
           book: {
             name: title,
-            authorsAsString: text(rawBook.authorsAsString),
+            authorsAsString: text(rawBook.authorsAsString) || authors.map(author => author.name).join(", "),
+            authors,
+            series,
+            seriesOrder: nonNegativeNumber(rawBook.seriesOrder),
             consumableId,
             largeCover: text(rawBook.largeCover, 2048),
             largeCoverE: text(rawBook.largeCoverE, 2048),

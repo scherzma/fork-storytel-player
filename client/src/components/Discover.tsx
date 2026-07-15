@@ -1,10 +1,12 @@
 import React, {FormEvent, useEffect, useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useLocation, useNavigate, useSearchParams} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import api from '../utils/api';
 import {BookShelfEntity, BookShelfResponse} from '../interfaces/books';
 import BookCard from './BookCard';
 import DashboardHeader from './DashboardHeader';
+import {useBrowseState} from '../contexts/BrowseStateContext';
+import {CatalogSearchSource} from '../utils/catalogSearch';
 
 interface DiscoverProps {
     onLogout: () => void;
@@ -17,14 +19,29 @@ type Notice = {type: 'success' | 'error'; message: string} | null;
 function Discover({onLogout, triggerLogout, setTriggerLogout}: DiscoverProps) {
     const {t} = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
     const inputRef = useRef<HTMLInputElement>(null);
-    const [query, setQuery] = useState('');
-    const [books, setBooks] = useState<BookShelfEntity[]>([]);
+    const automaticSearchRef = useRef('');
+    const {
+        discoverQuery: query,
+        setDiscoverQuery: setQuery,
+        discoverBooks: books,
+        setDiscoverBooks: setBooks,
+        discoverHasSearched: hasSearched,
+        setDiscoverHasSearched: setHasSearched,
+        setLibraryLoaded,
+    } = useBrowseState();
     const [isLoading, setIsLoading] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState<Notice>(null);
     const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+    const requestedQuery = searchParams.get('q')?.trim() || '';
+    const requestedSource = searchParams.get('source');
+    const searchSource: CatalogSearchSource | null =
+        requestedSource === 'author' || requestedSource === 'narrator' || requestedSource === 'series' || requestedSource === 'category'
+            ? requestedSource
+            : null;
 
     useEffect(() => {
         window.scrollTo({top: 0, left: 0});
@@ -70,14 +87,32 @@ function Discover({onLogout, triggerLogout, setTriggerLogout}: DiscoverProps) {
         }
     };
 
+    useEffect(() => {
+        if (requestedQuery.length < 2) return;
+        const signature = `${requestedQuery}|${searchSource || ''}`;
+        if (automaticSearchRef.current === signature) return;
+        automaticSearchRef.current = signature;
+        if (hasSearched && query === requestedQuery) return;
+        void runSearch(requestedQuery);
+        // The URL is the trigger; browse state setters are stable context values.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [requestedQuery, searchSource]);
+
     const search = (event: FormEvent) => {
         event.preventDefault();
-        void runSearch(query);
+        const normalizedQuery = query.trim().replace(/\s+/g, ' ');
+        if (normalizedQuery.length < 2) {
+            void runSearch(normalizedQuery);
+            return;
+        }
+        automaticSearchRef.current = `${normalizedQuery}|`;
+        navigate(`/discover?q=${encodeURIComponent(normalizedQuery)}`, {replace: true});
+        void runSearch(normalizedQuery);
     };
 
     const handleBookSelect = (book: BookShelfEntity) => {
         navigate(`/book/${encodeURIComponent(String(book.abook.id))}`, {
-            state: {book, returnTo: '/discover'},
+            state: {book, returnTo: `${location.pathname}${location.search}`},
         });
     };
 
@@ -93,6 +128,7 @@ function Discover({onLogout, triggerLogout, setTriggerLogout}: DiscoverProps) {
         ));
         try {
             await api.put(`/bookshelf/${encodeURIComponent(consumableId)}`, {saved});
+            setLibraryLoaded(false);
             setNotice({
                 type: 'success',
                 message: t(saved ? 'discover.saveSuccess' : 'discover.removeSuccess', {title: book.book.name}),
@@ -129,11 +165,13 @@ function Discover({onLogout, triggerLogout, setTriggerLogout}: DiscoverProps) {
             <main className="relative mx-auto max-w-7xl px-5 pb-28 pt-10 sm:px-8 lg:px-10">
                 <section className="relative mb-10 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#252832] via-[#191b21] to-[#121317] px-6 py-10 shadow-2xl sm:px-10 sm:py-14">
                     <div className="absolute -right-20 -top-28 h-80 w-80 rounded-full bg-orange-500/20 blur-3xl" aria-hidden="true" />
-                    <div className="relative max-w-3xl">
-                        <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-orange-300">{t('discover.eyebrow')}</p>
-                        <h1 className="mb-3 text-3xl font-black tracking-tight sm:text-5xl">{t('discover.title')}</h1>
-                        <p className="mb-8 max-w-2xl text-sm leading-6 text-white/60 sm:text-base">{t('discover.subtitle')}</p>
-                        <form onSubmit={search} className="flex flex-col gap-3 sm:flex-row">
+                    <div className="relative">
+                        <div className="max-w-3xl">
+                            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-orange-300">{t('discover.eyebrow')}</p>
+                            <h1 className="mb-3 text-3xl font-black tracking-tight sm:text-5xl">{t('discover.title')}</h1>
+                            <p className="max-w-2xl text-sm leading-6 text-white/60 sm:text-base">{t('discover.subtitle')}</p>
+                        </div>
+                        <form onSubmit={search} className="mt-8 grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_8.5rem]">
                             <div className="relative flex-1">
                                 <svg className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/45" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -158,6 +196,11 @@ function Discover({onLogout, triggerLogout, setTriggerLogout}: DiscoverProps) {
                                 {isLoading ? t('discover.searching') : t('discover.search')}
                             </button>
                         </form>
+                        {searchSource && requestedQuery && (
+                            <p className="mt-3 inline-flex rounded-full border border-orange-300/20 bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-200">
+                                {t(`discover.searchContext.${searchSource}`, {name: requestedQuery})}
+                            </p>
+                        )}
                         {error && <p role="alert" className="mt-3 text-sm font-medium text-red-300">{error}</p>}
                     </div>
                 </section>

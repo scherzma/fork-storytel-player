@@ -50,8 +50,14 @@
   "discover": {
     "title": "Bücher entdecken",
     "eyebrow": "Storytel entdecken",
-    "subtitle": "Durchsuche den Storytel-Katalog nach Titel, Autor oder Sprecher.",
-    "placeholder": "Titel, Autor oder Sprecher",
+    "subtitle": "Durchsuche den Storytel-Katalog nach Titel, Autor, Sprecher oder Serie.",
+    "placeholder": "Titel, Autor, Sprecher oder Serie",
+    "searchContext": {
+      "author": "Bücher von oder mit {{name}}",
+      "narrator": "Von {{name}} gelesene Bücher",
+      "series": "Bücher aus der Reihe {{name}}",
+      "category": "Hörbücher: {{name}}"
+    },
     "search": "Suchen",
     "searching": "Suche läuft...",
     "prompt": "Finde dein nächstes Hörbuch",
@@ -87,7 +93,10 @@
     "loadingBookData": "Buchdaten werden geladen...",
     "loadError": "Audiostream konnte nicht geladen werden",
     "loadChaptersError": "Kapitel konnten nicht geladen werden",
-    "loadBookmarksError": "Lesezeichen konnten nicht geladen werden"
+    "loadBookmarksError": "Lesezeichen konnten nicht geladen werden",
+    "skipBackward": "15 Sekunden zurück",
+    "skipForward": "15 Sekunden vorspringen",
+    "openFullPlayer": "Vollständigen Player öffnen"
   },
   "bookmarks": {
     "title": "Ihre Lesezeichen",
@@ -121,7 +130,8 @@
     "cancel": "Abbrechen",
     "save": "Speichern",
     "delete": "Löschen",
-    "close": "Schließen"
+    "close": "Schließen",
+    "back": "Zurück"
   },
   "bookCard": {
     "open": "{{title}} öffnen",
@@ -135,9 +145,15 @@
   "bookView": {
     "saved": "Gespeichert",
     "listen": "Anhören",
+    "resume": "Fortsetzen",
     "language": "Sprache",
     "duration": "Dauer",
     "category": "Kategorie",
+    "series": "Reihe:",
+    "searchAuthor": "Nach Büchern von {{name}} suchen",
+    "searchNarrator": "Nach von {{name}} gelesenen Büchern suchen",
+    "searchSeries": "Die Reihe {{name}} durchsuchen",
+    "searchCategory": "Nach {{name}}-Hörbüchern suchen",
     "noDescription": "Keine Beschreibung verfügbar.",
     "showMore": "mehr anzeigen",
     "showLess": "weniger anzeigen",
@@ -226,7 +242,11 @@
     "developer": "Entwickler",
     "viewLogs": "Sitzungsprotokolle anzeigen",
     "language": "Sprache",
-    "languageAuto": "Auto"
+    "languageAuto": "Automatisch",
+    "languageDescription": "Wähle die Sprache der Benutzeroberfläche",
+    "languages": {
+      "en": "English", "it": "Italiano", "fr": "Français", "es": "Español", "de": "Deutsch", "sv": "Svenska"
+    }
   },
   "logs": {
     "title": "Anwendungsprotokolle",

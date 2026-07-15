@@ -59,8 +59,14 @@
     "removeSuccess": "« {{title}} » a été retiré de votre bibliothèque.",
     "saveError": "Storytel n'a pas pu mettre à jour votre bibliothèque. Réessayez.",
     "title": "Découvrir des livres",
-    "subtitle": "Recherchez dans le catalogue Storytel par titre, auteur ou narrateur.",
-    "placeholder": "Titre, auteur ou narrateur",
+    "subtitle": "Recherchez dans le catalogue Storytel par titre, auteur, narrateur ou série.",
+    "placeholder": "Titre, auteur, narrateur ou série",
+    "searchContext": {
+      "author": "Livres de ou avec {{name}}",
+      "narrator": "Livres racontés par {{name}}",
+      "series": "Livres de la série {{name}}",
+      "category": "Livres audio {{name}}"
+    },
     "search": "Rechercher",
     "searching": "Recherche...",
     "prompt": "Trouvez votre prochain livre audio",
@@ -87,7 +93,10 @@
     "loadingBookData": "Chargement des données du livre...",
     "loadError": "Échec du chargement du flux audio",
     "loadChaptersError": "Échec du chargement des chapitres",
-    "loadBookmarksError": "Échec du chargement des marque-pages"
+    "loadBookmarksError": "Échec du chargement des marque-pages",
+    "skipBackward": "Reculer de 15 secondes",
+    "skipForward": "Avancer de 15 secondes",
+    "openFullPlayer": "Ouvrir le lecteur complet"
   },
   "bookmarks": {
     "title": "Vos Marque-pages",
@@ -121,7 +130,8 @@
     "cancel": "Annuler",
     "save": "Enregistrer",
     "delete": "Supprimer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "back": "Retour"
   },
   "bookCard": {
     "open": "Ouvrir {{title}}",
@@ -135,9 +145,15 @@
   "bookView": {
     "saved": "Enregistré",
     "listen": "Écouter",
+    "resume": "Reprendre",
     "language": "Langue",
     "duration": "Durée",
     "category": "Catégorie",
+    "series": "Série :",
+    "searchAuthor": "Rechercher des livres de {{name}}",
+    "searchNarrator": "Rechercher des livres racontés par {{name}}",
+    "searchSeries": "Rechercher dans la série {{name}}",
+    "searchCategory": "Rechercher des livres audio {{name}}",
     "noDescription": "Aucune description disponible.",
     "showMore": "afficher plus",
     "showLess": "afficher moins",
@@ -226,7 +242,11 @@
     "developer": "Développeur",
     "viewLogs": "Afficher les journaux de session",
     "language": "Langue",
-    "languageAuto": "Auto"
+    "languageAuto": "Automatique",
+    "languageDescription": "Choisissez la langue de l’application",
+    "languages": {
+      "en": "English", "it": "Italiano", "fr": "Français", "es": "Español", "de": "Deutsch", "sv": "Svenska"
+    }
   },
   "logs": {
     "title": "Journaux de l'application",

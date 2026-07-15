@@ -59,8 +59,14 @@
     "removeSuccess": "“{{title}}” se ha eliminado de tu biblioteca.",
     "saveError": "Storytel no pudo actualizar tu biblioteca. Inténtalo de nuevo.",
     "title": "Descubrir libros",
-    "subtitle": "Busca en el catálogo de Storytel por título, autor o narrador.",
-    "placeholder": "Título, autor o narrador",
+    "subtitle": "Busca en el catálogo de Storytel por título, autor, narrador o serie.",
+    "placeholder": "Título, autor, narrador o serie",
+    "searchContext": {
+      "author": "Libros de o con {{name}}",
+      "narrator": "Libros narrados por {{name}}",
+      "series": "Libros de la serie {{name}}",
+      "category": "Audiolibros de {{name}}"
+    },
     "search": "Buscar",
     "searching": "Buscando...",
     "prompt": "Encuentra tu próximo audiolibro",
@@ -87,7 +93,10 @@
     "loadingBookData": "Cargando datos del libro...",
     "loadError": "Error al cargar el flujo de audio",
     "loadChaptersError": "Error al cargar los capítulos",
-    "loadBookmarksError": "Error al cargar los marcadores"
+    "loadBookmarksError": "Error al cargar los marcadores",
+    "skipBackward": "Retroceder 15 segundos",
+    "skipForward": "Avanzar 15 segundos",
+    "openFullPlayer": "Abrir reproductor completo"
   },
   "bookmarks": {
     "title": "Tus Marcadores",
@@ -121,7 +130,8 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "delete": "Eliminar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "back": "Atrás"
   },
   "bookCard": {
     "open": "Abrir {{title}}",
@@ -135,9 +145,15 @@
   "bookView": {
     "saved": "Guardado",
     "listen": "Escuchar",
+    "resume": "Continuar",
     "language": "Idioma",
     "duration": "Duración",
     "category": "Categoría",
+    "series": "Serie:",
+    "searchAuthor": "Buscar libros de {{name}}",
+    "searchNarrator": "Buscar libros narrados por {{name}}",
+    "searchSeries": "Buscar en la serie {{name}}",
+    "searchCategory": "Buscar audiolibros de {{name}}",
     "noDescription": "No hay descripción disponible.",
     "showMore": "mostrar más",
     "showLess": "mostrar menos",
@@ -226,7 +242,11 @@
     "developer": "Desarrollador",
     "viewLogs": "Ver registros de sesión",
     "language": "Idioma",
-    "languageAuto": "Auto"
+    "languageAuto": "Automático",
+    "languageDescription": "Elige el idioma de la aplicación",
+    "languages": {
+      "en": "English", "it": "Italiano", "fr": "Français", "es": "Español", "de": "Deutsch", "sv": "Svenska"
+    }
   },
   "logs": {
     "title": "Registros de la aplicación",
