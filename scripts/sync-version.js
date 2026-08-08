@@ -1,12 +1,11 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
+const { readFileSync, writeFileSync } = require('fs');
+const { resolve } = require('path');
 
 // File paths
 const paths = {
   package: resolve('package.json'),
   appVersion: resolve('src/version.ts'),
-  website: resolve('docs/index.html'),
-  readme: resolve('README.md')
+  clientVersion: resolve('client/src/version.ts')
 };
 
 // 1. Read the new version from package.json (already updated by npm version)
@@ -20,34 +19,5 @@ const versionContent = `export const APP_VERSION = "${newVersion}";\n`;
 writeFileSync(paths.appVersion, versionContent);
 console.log('✅ Updated src/version.ts');
 
-// 3. Update website/index.html
-let website = readFileSync(paths.website, 'utf-8');
-
-// Update version badge: <span class="badge version">v0.6.0</span>
-website = website.replace(
-  /<span class="badge version">v.*?<\/span>/,
-  `<span class="badge version">v${newVersion}</span>`
-);
-
-let readme = readFileSync(paths.readme, 'utf-8');
-
-// Update download links in README
-readme = readme.replace(
-  /releases\/download\/v.*?\//g,
-  `releases/download/v${newVersion}/`
-);
-
-// Update Windows installer filename: Storytel-Player-Setup-X.Y.Z.exe
-readme = readme.replace(
-  /Storytel-Player-Setup-\d+\.\d+\.\d+/g,
-  `Storytel-Player-Setup-${newVersion}`
-);
-
-// Update macOS and Linux filenames: Storytel-Player-X.Y.Z.dmg and Storytel-Player-X.Y.Z.AppImage
-readme = readme.replace(
-  /Storytel-Player-(\d+\.\d+\.\d+)\.(dmg|AppImage)/g,
-  `Storytel-Player-${newVersion}.$2`
-);
-
-writeFileSync(paths.readme, readme);
-console.log('✅ Updated README.md');
+writeFileSync(paths.clientVersion, versionContent);
+console.log('✅ Updated client/src/version.ts');

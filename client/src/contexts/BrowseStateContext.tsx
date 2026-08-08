@@ -3,7 +3,7 @@ import {BookShelfEntity} from '../interfaces/books';
 import storage from '../utils/storage';
 
 export type LibraryViewMode = 'grid' | 'list';
-export type LibrarySort = 'recent' | 'title' | 'author' | 'progress';
+export type LibrarySort = 'lastListened' | 'recent' | 'title' | 'author' | 'progress';
 
 interface BrowseStateValue {
     libraryBooks: BookShelfEntity[];
@@ -34,7 +34,7 @@ export function BrowseStateProvider({children}: {children: React.ReactNode}) {
     const [libraryQuery, setLibraryQuery] = useState('');
     const [libraryFilter, setLibraryFilter] = useState(-1);
     const [libraryViewModeState, setLibraryViewModeState] = useState<LibraryViewMode>('grid');
-    const [librarySortState, setLibrarySortState] = useState<LibrarySort>('recent');
+    const [librarySortState, setLibrarySortState] = useState<LibrarySort>('lastListened');
     const [discoverQuery, setDiscoverQuery] = useState('');
     const [discoverBooks, setDiscoverBooks] = useState<BookShelfEntity[]>([]);
     const [discoverHasSearched, setDiscoverHasSearched] = useState(false);
@@ -44,7 +44,7 @@ export function BrowseStateProvider({children}: {children: React.ReactNode}) {
             if (saved === 'list' || saved === 'grid') setLibraryViewModeState(saved);
         });
         void storage.get('librarySort').then(saved => {
-            if (saved === 'recent' || saved === 'title' || saved === 'author' || saved === 'progress') {
+            if (saved === 'lastListened' || saved === 'recent' || saved === 'title' || saved === 'author' || saved === 'progress') {
                 setLibrarySortState(saved);
             }
         });

@@ -19,6 +19,7 @@ export interface BookShelfEntity {
     restriction: number
     shareUrl: string
     status: number
+    stateUpdateTime?: string | null
     isInLibrary?: boolean
     subscribesToSerie: number
 }
@@ -63,6 +64,7 @@ export interface AbookMark {
     chapter: number
     charOffsetInChapter: number
     insertDate?: string | null
+    updatedTime?: string | null
     pos: number
     secondsSinceCreated: number
     type: number

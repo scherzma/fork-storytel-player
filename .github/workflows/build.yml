@@ -1,195 +1,257 @@
-name: Build & Release
-
-env:
-  GH_TOKEN: ${{ SECRETS.GITHUB_TOKEN }}
+name: Stable Release
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - "v*.*.*"
+      - "!v*-*"
+
+permissions:
+  contents: write
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_REPO: ${{ github.repository }}
 
 defaults:
   run:
     shell: bash
 
+concurrency:
+  group: stable-release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
-      tag: ${{ steps.meta.outputs.tag }}
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
     steps:
-      - name: Check out Git repository
+      - name: Check out the tagged commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
-      - name: Resolve release tag from package.json
-        id: meta
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate stable tag and package version
+        id: release
         run: |
-          # electron-builder derives its release tag from the package.json version
-          # (v<version>); resolve the same value so we can create the release up front.
-          VERSION=$(node -p "require('./package.json').version")
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          TAG="$GITHUB_REF_NAME"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Stable release tags must use the exact form vX.Y.Z. Received: $TAG"
+            exit 1
+          fi
 
-      - name: Create the draft release up front
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG" != "v$PACKAGE_VERSION" ]; then
+            echo "::error::Tag $TAG does not match package.json version $PACKAGE_VERSION."
+            exit 1
+          fi
+
+          LOCK_VERSION=$(node -p "require('./package-lock.json').version")
+          LOCK_ROOT_VERSION=$(node -p "require('./package-lock.json').packages[''].version")
+          if [ "$LOCK_VERSION" != "$PACKAGE_VERSION" ] || [ "$LOCK_ROOT_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::package-lock.json is not synchronized with package.json."
+            exit 1
+          fi
+
+          for version_file in src/version.ts client/src/version.ts; do
+            if ! grep -Fxq "export const APP_VERSION = \"$PACKAGE_VERSION\";" "$version_file"; then
+              echo "::error::$version_file is not synchronized with package.json."
+              exit 1
+            fi
+          done
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install locked dependencies
+        run: npm run ci:install-all
+
+      - name: Run server tests
+        run: npm test
+
+      - name: Build client
+        run: npm run build
+
+      - name: Build server
+        run: npm run server:build
+
+      - name: Type-check and build Electron
+        run: npm run electron:build
+
+      - name: Prepare release notes from the changelog
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
         run: |
-          # The build matrix runs in parallel and each electron-builder invocation
-          # would otherwise create its own draft release, racing into duplicate
-          # drafts for the same tag. Creating it once here means every build job
-          # just uploads its assets to the existing release.
+          awk -v version="$VERSION" '
+            index($0, "## " version " ") == 1 { capture = 1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::CHANGELOG.md has no release notes for version $VERSION."
+            exit 1
+          fi
+
+      - name: Create or reuse the draft release
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists, reusing it."
+            IS_DRAFT=$(gh release view "$TAG" --json isDraft --jq '.isDraft')
+            IS_PRERELEASE=$(gh release view "$TAG" --json isPrerelease --jq '.isPrerelease')
+            if [ "$IS_DRAFT" != "true" ] || [ "$IS_PRERELEASE" != "false" ]; then
+              echo "::error::Release $TAG already exists and is not a stable draft."
+              exit 1
+            fi
+            echo "Resetting existing stable draft $TAG for a clean retry."
+            gh release view "$TAG" --json assets --jq '.assets[].name' | while IFS= read -r asset; do
+              if [ -n "$asset" ]; then
+                gh release delete-asset "$TAG" "$asset" --yes
+              fi
+            done
+            gh release edit "$TAG" --title "$TAG" --notes-file release-notes.md
           else
             gh release create "$TAG" \
               --draft \
-              --target "$GITHUB_SHA" \
+              --verify-tag \
               --title "$TAG" \
-              --notes "Automated release build."
+              --notes-file release-notes.md
           fi
 
-  linux_x64:
+  linux:
     needs: prepare
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out Git repository
+      - name: Check out the tagged commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
 
       - name: Install Node.js and NPM
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Build
+      - name: Install locked dependencies
         run: npm run ci:install-all
 
-      - name: Release
-        if: contains(github.ref, 'master')
-        run: npm run electron:dist:linux:x64 -- --publish always
+      - name: Build and upload Linux artifacts
+        run: npm run electron:dist:linux -- --publish always
 
-  linux_arm64:
-    needs: prepare
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Install Node.js and NPM
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Build
-        run: npm run ci:install-all
-
-      - name: Release
-        if: contains(github.ref, 'master')
-        run: npm run electron:dist:linux:arm64 -- --publish always
-
-  linux_arm:
-    needs: prepare
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Install Node.js and NPM
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Build
-        run: npm run ci:install-all
-
-      - name: Release
-        if: contains(github.ref, 'master')
-        run: npm run electron:dist:linux:arm -- --publish always
-
-  dmg_x64:
+  dmg:
     needs: prepare
     runs-on: macos-latest
-
+    env:
+      MAC_SIGNING_CONFIGURED: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' && secrets.APPLE_API_KEY_CONTENT != '' && secrets.APPLE_API_KEY_ID != '' && secrets.APPLE_API_ISSUER != '' }}
     steps:
-      - name: Check out Git repository
+      - name: Check out the tagged commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
 
       - name: Install Node.js and NPM
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Build
+      - name: Install locked dependencies
         run: npm run ci:install-all
 
-      # Notarization uses the App Store Connect API key. The .p8 is stored
-      # base64-encoded in APPLE_API_KEY_CONTENT and decoded into a temp file.
       - name: Prepare Apple API key
+        if: env.MAC_SIGNING_CONFIGURED == 'true'
         run: |
           echo "${{ secrets.APPLE_API_KEY_CONTENT }}" | base64 --decode > "$RUNNER_TEMP/apple_api_key.p8"
           echo "APPLE_API_KEY=$RUNNER_TEMP/apple_api_key.p8" >> "$GITHUB_ENV"
 
-      - name: Release
-        if: contains(github.ref, 'master')
+      - name: Build, sign, and upload macOS artifacts
+        if: env.MAC_SIGNING_CONFIGURED == 'true'
         env:
           CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-        run: npm run electron:dist:mac:x64 -- --publish always
+        run: npm run electron:dist:mac -- --publish always
 
-  dmg_arm64:
-    needs: prepare
-    runs-on: macos-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Install Node.js and NPM
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Build
-        run: npm run ci:install-all
-
-      # Notarization uses the App Store Connect API key. The .p8 is stored
-      # base64-encoded in APPLE_API_KEY_CONTENT and decoded into a temp file.
-      - name: Prepare Apple API key
-        run: |
-          echo "${{ secrets.APPLE_API_KEY_CONTENT }}" | base64 --decode > "$RUNNER_TEMP/apple_api_key.p8"
-          echo "APPLE_API_KEY=$RUNNER_TEMP/apple_api_key.p8" >> "$GITHUB_ENV"
-
-      - name: Release
-        if: contains(github.ref, 'master')
+      - name: Build, ad-hoc sign, and upload macOS artifacts
+        if: env.MAC_SIGNING_CONFIGURED != 'true'
         env:
-          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-        run: npm run electron:dist:mac:arm64 -- --publish always
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run electron:dist:mac -- --publish always -c.mac.identity=- -c.mac.notarize=false
 
   exe:
     needs: prepare
     runs-on: windows-latest
-
     steps:
-      - name: Check out Git repository
+      - name: Check out the tagged commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
 
       - name: Install Node.js and NPM
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Build
+      - name: Install locked dependencies
         run: npm run ci:install-all
 
-      - name: Release
-        if: contains(github.ref, 'master')
+      - name: Build and upload Windows x64 artifacts
         run: npm run electron:dist:win -- --publish always
+
+  publish:
+    needs:
+      - prepare
+      - linux
+      - dmg
+      - exe
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify artifacts, publish checksums, and release
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          IS_DRAFT=$(gh release view "$TAG" --json isDraft --jq '.isDraft')
+          IS_PRERELEASE=$(gh release view "$TAG" --json isPrerelease --jq '.isPrerelease')
+          if [ "$IS_DRAFT" != "true" ] || [ "$IS_PRERELEASE" != "false" ]; then
+            echo "::error::Release $TAG is no longer an unpublished stable draft."
+            exit 1
+          fi
+
+          mkdir release-assets
+          gh release download "$TAG" --dir release-assets
+
+          require_asset() {
+            local pattern="$1"
+            local label="$2"
+            if ! compgen -G "$pattern" >/dev/null; then
+              echo "::error::The draft is missing its $label artifact ($pattern)."
+              exit 1
+            fi
+          }
+
+          require_asset "release-assets/*Setup*.exe" "Windows x64"
+          require_asset "release-assets/*-mac-x64.dmg" "macOS x64"
+          require_asset "release-assets/*-mac-arm64.dmg" "macOS arm64"
+          require_asset "release-assets/*_amd64.deb" "Linux x64"
+          require_asset "release-assets/*_arm64.deb" "Linux arm64"
+          require_asset "release-assets/*_armhf.deb" "Linux armv7l"
+
+          (
+            cd release-assets
+            find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' -print0 \
+              | sort -z \
+              | xargs -0 sha256sum
+          ) > SHA256SUMS.txt
+          gh release upload "$TAG" SHA256SUMS.txt --clobber
+
+          gh release edit "$TAG" \
+            --draft=false \
+            --prerelease=false \
+            --latest

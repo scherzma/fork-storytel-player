@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import api from '../utils/api';
+import {APP_VERSION} from '../version';
 import LogsModal from './LogsModal';
 import Modal from './Modal';
 
@@ -10,6 +11,13 @@ interface SettingsModalProps {
   onLogout: () => void;
 }
 
+const browserVersionInfo: ElectronAppVersionInfo = {
+  appVersion: APP_VERSION,
+  electronVersion: '',
+  chromeVersion: '',
+  nodeVersion: '',
+};
+
 function SettingsModal({isOpen, onClose, onLogout}: SettingsModalProps) {
   const {t, i18n} = useTranslation();
   const [email, setEmail] = useState('');
@@ -17,12 +25,14 @@ function SettingsModal({isOpen, onClose, onLogout}: SettingsModalProps) {
   const [alwaysOnTop, setAlwaysOnTop] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [appLanguage, setAppLanguage] = useState('auto');
+  const [versionInfo, setVersionInfo] = useState<ElectronAppVersionInfo>(browserVersionInfo);
 
   useEffect(() => {
     if (!isOpen) return;
     void fetchAccountInfo();
     void fetchAlwaysOnTopSetting();
     void fetchAppLanguage();
+    void fetchVersionInfo();
   }, [isOpen]);
 
   const fetchAccountInfo = async () => {
@@ -50,6 +60,20 @@ function SettingsModal({isOpen, onClose, onLogout}: SettingsModalProps) {
       if (window.electronStore) setAppLanguage(await window.electronStore.get('appLanguage') || 'auto');
     } catch (error) {
       console.error('Failed to fetch app language setting:', error);
+    }
+  };
+
+  const fetchVersionInfo = async () => {
+    if (!window.electronApp) {
+      setVersionInfo(browserVersionInfo);
+      return;
+    }
+
+    try {
+      setVersionInfo(await window.electronApp.getVersionInfo());
+    } catch (error) {
+      console.error('Failed to fetch app version information:', error);
+      setVersionInfo(browserVersionInfo);
     }
   };
 
@@ -86,9 +110,14 @@ function SettingsModal({isOpen, onClose, onLogout}: SettingsModalProps) {
   if (!isOpen) return null;
 
   const externalLinks = [
-    {label: t('settings.githubRepo'), href: 'https://github.com/debba/storytel-player'},
+    {label: t('settings.githubRepo'), href: 'https://github.com/scherzma/fork-storytel-player'},
     {label: t('settings.discordCommunity'), href: 'https://discord.gg/YrZPHAwMSG'},
   ];
+  const runtimeVersions = [
+    {label: t('settings.electronVersion'), value: versionInfo.electronVersion},
+    {label: t('settings.chromeVersion'), value: versionInfo.chromeVersion},
+    {label: t('settings.nodeVersion'), value: versionInfo.nodeVersion},
+  ].filter(({value}) => Boolean(value));
 
   return (
     <>
@@ -152,6 +181,33 @@ function SettingsModal({isOpen, onClose, onLogout}: SettingsModalProps) {
               </div>
             </section>
           </div>
+
+          <section aria-labelledby="settings-about-heading">
+            <h3 id="settings-about-heading" className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-white/55">{t('settings.about')}</h3>
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035]">
+              <div className="flex items-center gap-4 p-5">
+                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-300">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 8h.01M11 12h1v4h1m8-4a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/35">{t('settings.appVersion')}</p>
+                  <p aria-live="polite" className="mt-1 font-semibold tabular-nums text-white">{versionInfo.appVersion}</p>
+                </div>
+              </div>
+              {runtimeVersions.length > 0 ? (
+                <dl aria-label={t('settings.runtimeVersions')} className="grid border-t border-white/[0.07] sm:grid-cols-3">
+                  {runtimeVersions.map(({label, value}) => (
+                    <div key={label} className="border-t border-white/[0.07] p-4 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0">
+                      <dt className="text-xs font-bold uppercase tracking-[0.12em] text-white/35">{label}</dt>
+                      <dd className="mt-1 font-mono text-sm tabular-nums text-white/75">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className="border-t border-white/[0.07] px-5 py-4 text-sm text-white/45">{t('settings.runtimeUnavailable')}</p>
+              )}
+            </div>
+          </section>
 
           <section>
             <h3 className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-white/55">{t('settings.account')}</h3>

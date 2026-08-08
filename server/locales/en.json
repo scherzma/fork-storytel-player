@@ -31,7 +31,8 @@
     "viewList": "List view",
     "sortLabel": "Sort library",
     "sort": {
-      "recent": "Recently added",
+      "lastListened": "Last listened",
+      "recent": "Recently updated",
       "title": "Title",
       "author": "Author",
       "progress": "Progress"
@@ -305,6 +306,13 @@
     "logout": "Logout",
     "developer": "Developer",
     "viewLogs": "View Session Logs",
+    "about": "About",
+    "appVersion": "App version",
+    "runtimeVersions": "Runtime versions",
+    "electronVersion": "Electron",
+    "chromeVersion": "Chrome",
+    "nodeVersion": "Node.js",
+    "runtimeUnavailable": "Runtime details are available in the desktop app.",
     "language": "Language",
     "languageAuto": "Automatic",
     "languageDescription": "Choose the language used throughout the app",

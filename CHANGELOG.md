@@ -1,3 +1,20 @@
+## 1.3.1 (2026-08-08)
+
+### Features
+
+* **library:** add a persistent Last listened sort backed by Storytel's real listening timestamps and live playback updates
+* **settings:** show the Storytel Player, Electron, Chrome, and Node.js versions in a new About section
+* **player:** keep playback active while browsing, add listening-history recovery, and improve cross-device progress handling
+* **read along:** add private on-device live transcription with word-level navigation in the expanded player
+* **discovery:** add catalog search and library management without interrupting playback
+
+### Bug Fixes
+
+* **bookshelf:** preserve listening and library-activity timestamps returned by the current Storytel API
+* **library:** make every sort mode deterministic and replace the misleading Recently added order with Recently updated
+* **i18n:** complete missing single-sign-on labels across all supported languages
+* **release:** publish validated stable tags only after every platform build succeeds
+
 ## 1.2.20 (2026-07-15)
 
 

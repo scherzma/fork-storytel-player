@@ -7,6 +7,7 @@ import ErrorState from './ErrorState';
 import DashboardHeader from './DashboardHeader';
 import {BookShelfEntity, BookShelfResponse} from '../interfaces/books';
 import {useBrowseState} from '../contexts/BrowseStateContext';
+import {createLibraryBookComparator} from '../utils/librarySort';
 
 interface DashboardProps {
     onLogout: () => void;
@@ -68,22 +69,7 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
                 .some(value => value?.toLocaleLowerCase().includes(normalizedQuery));
         });
 
-        return matchingBooks.sort((left, right) => {
-            if (sort === 'title') {
-                return (left.book.name || '').localeCompare(right.book.name || '', i18n.language);
-            }
-            if (sort === 'author') {
-                return (left.book.authorsAsString || '').localeCompare(right.book.authorsAsString || '', i18n.language);
-            }
-            if (sort === 'progress') {
-                const leftProgress = left.abook.time > 0 ? (left.abookMark?.pos || 0) / left.abook.time : 0;
-                const rightProgress = right.abook.time > 0 ? (right.abookMark?.pos || 0) / right.abook.time : 0;
-                return rightProgress - leftProgress;
-            }
-            const leftDate = Date.parse(left.insertDate || '');
-            const rightDate = Date.parse(right.insertDate || '');
-            return (Number.isFinite(rightDate) ? rightDate : 0) - (Number.isFinite(leftDate) ? leftDate : 0);
-        });
+        return matchingBooks.sort(createLibraryBookComparator(sort, i18n.language));
     }, [books, filterStatus, i18n.language, searchQuery, sort]);
 
     const counts = useMemo(() => ({
@@ -254,6 +240,7 @@ function Dashboard({onLogout, triggerLogout, setTriggerLogout}: DashboardProps) 
                                             aria-label={t('dashboard.sortLabel')}
                                             className="h-full cursor-pointer appearance-none bg-transparent pl-2 pr-8 text-xs font-bold text-white/75 outline-none"
                                         >
+                                            <option className="bg-[#1b1d22]" value="lastListened">{t('dashboard.sort.lastListened')}</option>
                                             <option className="bg-[#1b1d22]" value="recent">{t('dashboard.sort.recent')}</option>
                                             <option className="bg-[#1b1d22]" value="title">{t('dashboard.sort.title')}</option>
                                             <option className="bg-[#1b1d22]" value="author">{t('dashboard.sort.author')}</option>

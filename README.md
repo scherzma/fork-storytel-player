@@ -1,20 +1,23 @@
 # Storytel Player for Desktop
 
-![](https://img.shields.io/github/release/debba/storytel-player.svg?style=flat)
-![](https://img.shields.io/github/downloads/debba/storytel-player/total.svg?style=flat)
-![Build & Release](https://github.com/debba/storytel-player/workflows/Build%20&%20Release/badge.svg)
-[![Known Vulnerabilities](https://snyk.io//test/github/debba/storytel-player/badge.svg?targetFile=package.json)](https://snyk.io//test/github/debba/storytel-player?targetFile=package.json)
+![](https://img.shields.io/github/release/scherzma/fork-storytel-player.svg?style=flat)
+![](https://img.shields.io/github/downloads/scherzma/fork-storytel-player/total.svg?style=flat)
+![Build & Release](https://github.com/scherzma/fork-storytel-player/actions/workflows/build.yml/badge.svg)
+[![Known Vulnerabilities](https://snyk.io//test/github/scherzma/fork-storytel-player/badge.svg?targetFile=package.json)](https://snyk.io//test/github/scherzma/fork-storytel-player?targetFile=package.json)
 [![Discord](https://img.shields.io/discord/1470772941296894128?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/YrZPHAwMSG)
 ![i18n](https://img.shields.io/badge/i18n-EN%20|%20IT%20|%20DE%20|%20ES%20|%20FR%20|%20SV-blue)
 
-**Unoffical Storytel Player for Desktop** — a cross-platform desktop application for playing Storytel audiobooks, built with TypeScript, React, Fastify, and Electron.
+**Unofficial Storytel Player for Desktop** — a cross-platform desktop application for playing Storytel audiobooks, built with TypeScript, React, Fastify, and Electron.
 
 **Discord** - [Join our discord server](https://discord.gg/YrZPHAwMSG) and chat with the maintainers.
 
 <img src="docs/assets/og_image.png" width="90%"></img>
 
-## Release Download:
-[![Windows](https://img.shields.io/badge/Windows-Download-blue?logo=windows)](https://github.com/debba/storytel-player/releases/download/v1.2.20/Storytel-Player-Setup-1.2.20.exe) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-Download-black?logo=apple)](https://github.com/debba/storytel-player/releases/download/v1.2.20/Storytel-Player-1.2.20.dmg) [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-Download-black?logo=apple)](https://github.com/debba/storytel-player/releases/download/v1.2.20/Storytel-Player-1.2.13-arm64.dmg) [![Linux](https://img.shields.io/badge/Linux-Download-green?logo=linux)](https://github.com/debba/storytel-player/releases/download/v1.2.20/Storytel-Player-1.2.20.AppImage)
+## Release downloads
+
+[![Windows](https://img.shields.io/badge/Windows-Download-blue?logo=windows)](https://github.com/scherzma/fork-storytel-player/releases/latest) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-Download-black?logo=apple)](https://github.com/scherzma/fork-storytel-player/releases/latest) [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-Download-black?logo=apple)](https://github.com/scherzma/fork-storytel-player/releases/latest) [![Linux](https://img.shields.io/badge/Linux-Download-green?logo=linux)](https://github.com/scherzma/fork-storytel-player/releases/latest)
+
+> macOS artifacts are Developer ID-signed and notarized when Apple release credentials are configured. Otherwise, the workflow publishes non-notarized, ad-hoc-signed builds that macOS may require you to approve in **System Settings → Privacy & Security**.
 
 ## What's New
 
@@ -24,9 +27,11 @@ See the [CHANGELOG](CHANGELOG.md) for the full list of changes across all releas
 
 ✅ **Native Desktop App**: Cross-platform application with system tray integration and single instance lock
 
-✅ **Audiobook Library and Discovery**: Browse your Storytel library with cover art and progress tracking, or search the wider Storytel catalog by title, author, or narrator (Ctrl/Cmd+K shortcut)
+✅ **Audiobook Library and Discovery**: Browse, filter, and sort your Storytel library—including by last listened—or search the wider catalog by title, author, or narrator (Ctrl/Cmd+K shortcut)
 
-✅ **Audio Player**: HTML5 audio player with playback controls and bookmarks
+✅ **Audio Player**: Persistent playback with bookmarks, listening-history recovery, cross-device progress sync, and an optional on-device live read-along
+
+✅ **Version Information**: See the app and desktop runtime version numbers from Settings
 
 ✅ **Session Management**: Storytel sessions stay in Electron's main process and are encrypted with the operating system's credential protection through Electron `safeStorage`
 
@@ -48,7 +53,7 @@ See the [CHANGELOG](CHANGELOG.md) for the full list of changes across all releas
 The application is built with TypeScript and follows a modular architecture:
 
 - **Frontend**: React 18 with TypeScript, Tailwind CSS, and Vite (port 3000 in dev mode)
-- **Backend**: Fastify server with TypeScript and RESTful API (port 8080)
+- **Backend**: Fastify server with TypeScript and RESTful API (port 3001 in dev mode)
 - **Desktop**: Electron 38+ with TypeScript
   - Window Manager: Main window handling with development/production modes
   - Tray Manager: System tray integration
@@ -67,24 +72,6 @@ The application is built with TypeScript and follows a modular architecture:
 
 ### macOS
 
-#### Homebrew (Recommended)
-
-To add our tap, run:
-
-```bash
-brew tap debba/storytel-player
-```
-
-Then install:
-
-```bash
-brew install --cask storytel-player
-```
-
-[![Homebrew](https://img.shields.io/badge/Homebrew-Repository-orange?logo=homebrew)](https://github.com/debba/homebrew-storytel-player)
-
-#### Direct Download
-
 macOS users who download directly from releases may need to run:
 
 ```bash
@@ -93,21 +80,19 @@ xattr -c "/Applications/Storytel Player.app"
 
 after copying the app to the Applications directory.
 
-### Arch Linux (AUR)
+### Package-manager builds
 
-```bash
-yay -S storytel-player-bin
-```
+The existing [Homebrew tap](https://github.com/debba/homebrew-storytel-player) and `storytel-player-bin` AUR package track the upstream project, not this fork. Use this fork's Releases page to install the feature set and version documented here.
 
 ## Updates
 
 ### Automatic Updates
 
-Automatic updates are disabled by default in this hardened fork because personal Windows builds are unsigned. Install reviewed builds manually. Release maintainers with signed artifacts can explicitly enable update checks by launching with `STORYTEL_ENABLE_AUTO_UPDATES=true`; Windows update signature verification remains enabled.
+Automatic updates are disabled by default in this hardened fork because its current Windows builds are unsigned and therefore cannot provide publisher-signature verification. Install reviewed builds manually. Release maintainers should only enable update checks with `STORYTEL_ENABLE_AUTO_UPDATES=true` when every published update is signed by a trusted certificate.
 
 ### Manual Updates
 
-Build from the reviewed source or download a release from this fork's Releases page and verify its published checksum before installing.
+Build from the reviewed source or download a release from this fork's Releases page and verify it against the published `SHA256SUMS.txt` before installing.
 
 ## Development
 
@@ -150,7 +135,7 @@ npm run electron:dev
 
 ### Build for Production
 
-Build all components for production:
+Build the client for production:
 
 ```bash
 npm run build
@@ -181,7 +166,7 @@ The built applications will be available in the `dist/` directory.
 **Build targets:**
 - **Windows**: NSIS installer (.exe)
 - **macOS**: DMG package (.dmg)
-- **Linux**: AppImage, deb, rpm, Pacman packages
+- **Linux**: AppImage, deb, rpm, and compressed archives
 
 ## Scripts
 

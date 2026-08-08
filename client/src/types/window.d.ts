@@ -2,6 +2,13 @@
 export {};
 
 declare global {
+  interface ElectronAppVersionInfo {
+    appVersion: string;
+    electronVersion: string;
+    chromeVersion: string;
+    nodeVersion: string;
+  }
+
   interface Window {
     // TODO: Define proper types for tray control methods based on actual Electron IPC
     trayControls?: {
@@ -27,6 +34,9 @@ declare global {
     electronWindow?: {
       setAlwaysOnTop: (alwaysOnTop: boolean) => Promise<void>;
       isAlwaysOnTop: () => Promise<boolean>;
+    };
+    electronApp?: {
+      getVersionInfo: () => Promise<ElectronAppVersionInfo>;
     };
     electronAuth?: {
       openSsoWindow: (provider?: 'google' | 'apple') => Promise<{

@@ -261,6 +261,7 @@ function PlayerView({isOverlay = false, onClose}: PlayerViewProps) {
                         segments={transcription.segments}
                         isEnabled={transcription.isEnabled}
                         currentTime={audioPlayer.currentTime}
+                        playbackRate={playbackRate}
                         onStart={transcription.start}
                         onStop={transcription.stop}
                         onSeek={time => audioPlayer.handleSeek(time, 'seek')}

@@ -76,9 +76,16 @@ interface UseAudioPlayerProps {
     consumableId: string;
     playbackRate: number;
     onLoadError: (error: string) => void;
+    onPositionUpdated?: (consumableId: string, positionInMilliseconds: number, updatedAt: string) => void;
 }
 
-export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}: UseAudioPlayerProps) => {
+export const useAudioPlayer = ({
+    bookId,
+    consumableId,
+    playbackRate,
+    onLoadError,
+    onPositionUpdated,
+}: UseAudioPlayerProps) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const positionUpdateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const loadedConsumableIdRef = useRef('');
@@ -180,14 +187,16 @@ export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}
         if (!audioRef.current || !positionConsumableId) return;
 
         const position = Math.floor(audioRef.current.currentTime * 1000);
-        await writeLocalPosition(positionConsumableId, position);
+        const updatedAt = new Date().toISOString();
+        onPositionUpdated?.(positionConsumableId, position, updatedAt);
+        await writeLocalPosition(positionConsumableId, position, updatedAt);
 
         try {
             await api.put(`/bookmark-positional/${positionConsumableId}`, {position});
         } catch (error) {
             console.warn('Failed to sync position to API, kept locally', error);
         }
-    }, [consumableId]);
+    }, [consumableId, onPositionUpdated]);
 
     const fetchRemotePosition = useCallback(async (): Promise<RemotePosition | null> => {
         if (!consumableId) return null;
@@ -218,29 +227,34 @@ export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}
         ]);
 
         let chosenPosition = 0;
+        let chosenUpdatedAt: string | null = null;
         if (remote && local) {
             const remoteTime = parseTimestamp(remote.updatedAt);
             const localTime = parseTimestamp(local.updatedAt);
             const remoteIsNewer = remoteTime >= localTime;
             chosenPosition = remoteIsNewer ? remote.position : local.position;
+            chosenUpdatedAt = remoteIsNewer ? remote.updatedAt : local.updatedAt;
             if (remoteIsNewer && Math.abs(remote.position - local.position) >= REMOTE_JUMP_THRESHOLD_SECONDS * 1000) {
                 recordJump(local.position / 1000, remote.position / 1000, 'deviceSync', remote.updatedAt || undefined);
                 await writeLocalPosition(consumableId, remote.position, remote.updatedAt || undefined);
             }
         } else if (remote) {
             chosenPosition = remote.position;
+            chosenUpdatedAt = remote.updatedAt;
             await writeLocalPosition(consumableId, remote.position, remote.updatedAt || undefined);
         } else if (local) {
             chosenPosition = local.position;
+            chosenUpdatedAt = local.updatedAt;
         }
 
         adoptPosition(chosenPosition);
+        if (chosenUpdatedAt) onPositionUpdated?.(consumableId, chosenPosition, chosenUpdatedAt);
         try {
             await audioRef.current?.play();
         } catch {
             // Browser autoplay rules can require the user to press play.
         }
-    }, [adoptPosition, consumableId, fetchRemotePosition, hydrateHistory, recordJump]);
+    }, [adoptPosition, consumableId, fetchRemotePosition, hydrateHistory, onPositionUpdated, recordJump]);
 
     const refreshFromRemote = useCallback(async (force = false): Promise<boolean> => {
         if (!audioRef.current || !consumableId || audioRef.current.readyState < 1 || isPlaying) return false;
@@ -260,8 +274,9 @@ export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}
         recordJump(currentPosition, remote.position / 1000, 'deviceSync', remote.updatedAt);
         adoptPosition(remote.position);
         await writeLocalPosition(consumableId, remote.position, remote.updatedAt);
+        onPositionUpdated?.(consumableId, remote.position, remote.updatedAt);
         return true;
-    }, [adoptPosition, consumableId, fetchRemotePosition, isPlaying, recordJump]);
+    }, [adoptPosition, consumableId, fetchRemotePosition, isPlaying, onPositionUpdated, recordJump]);
 
     const handlePlayPause = useCallback(async () => {
         if (!audioRef.current) return;
@@ -362,6 +377,7 @@ export const useAudioPlayer = ({bookId, consumableId, playbackRate, onLoadError}
         if (audioRef.current) audioRef.current.playbackRate = playbackRate;
         if (positionUpdateIntervalRef.current) clearInterval(positionUpdateIntervalRef.current);
         positionUpdateIntervalRef.current = setInterval(updatePosition, 30_000);
+        void updatePosition();
         trackAction('play', {bookId, consumableId});
     };
 

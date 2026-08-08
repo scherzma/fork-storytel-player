@@ -55,13 +55,14 @@ interface RawBookshelfFormat {
   durationInMilliseconds?: number;
   durationInCharacters?: number;
   cover?: { url: string; width: number; height: number };
-  position?: { position: number; updatedTime: string; kidsMode: boolean };
+  position?: { position: number; updatedTime?: string; kidsMode: boolean };
 }
 
 interface RawBookshelfModel {
   id: string;
   title: string;
   state: "CONSUMING" | "CONSUMED" | "WILL_CONSUME" | string;
+  stateUpdateTime?: string;
   kidsBook?: boolean;
   authors?: RawBookshelfNamedEntity[];
   narrators?: RawBookshelfNamedEntity[];
@@ -83,6 +84,7 @@ interface RawBookshelfResponse {
 interface BookShelfEntity {
   id: string;
   status: number;
+  stateUpdateTime?: string;
   book: {
     name: string;
     authorsAsString: string;
@@ -101,13 +103,76 @@ interface BookShelfEntity {
     time: number;
     description: string;
   } | null;
-  abookMark: { pos: number } | null;
+  abookMark: { pos: number; updatedTime?: string } | null;
   ebook: RawBookshelfFormat | null;
   isInLibrary?: boolean;
 }
 
 interface BookShelfResponse {
   books: BookShelfEntity[];
+}
+
+const bookshelfStateToStatus: Record<string, number> = {
+  WILL_CONSUME: 1,
+  CONSUMING: 2,
+  CONSUMED: 3,
+};
+
+export function mapBookshelfModel(model: RawBookshelfModel): BookShelfEntity {
+  const formats: RawBookshelfFormat[] = Array.isArray(model.formats)
+    ? model.formats
+    : [];
+  const abookFormat = formats.find((format) => format.type === "abook");
+  const ebookFormat = formats.find((format) => format.type === "ebook");
+  const coverUrl = abookFormat?.cover?.url ?? ebookFormat?.cover?.url ?? "";
+  const join = (entries?: RawBookshelfNamedEntity[]) =>
+    (Array.isArray(entries) ? entries : [])
+      .map((entry) => entry?.name)
+      .filter(Boolean)
+      .join(", ");
+  const namedEntities = (entries?: RawBookshelfNamedEntity[]) =>
+    (Array.isArray(entries) ? entries : [])
+      .filter((entry) => Boolean(entry?.name))
+      .map((entry) => ({ id: String(entry.id), name: entry.name.trim() }));
+
+  return {
+    id: model.id,
+    status: bookshelfStateToStatus[model.state] ?? 1,
+    ...(typeof model.stateUpdateTime === "string"
+      ? { stateUpdateTime: model.stateUpdateTime }
+      : {}),
+    book: {
+      name: model.title,
+      authorsAsString: join(model.authors),
+      authors: namedEntities(model.authors),
+      series: namedEntities(model.series),
+      consumableId: String(model.id),
+      // Full absolute URL (covers.storytel.com).
+      largeCover: coverUrl,
+      largeCoverE: "",
+      category: { title: model.category?.name ?? "" },
+      language: { localizedName: "" },
+    },
+    abook: abookFormat
+      ? {
+          id: abookFormat.id,
+          narratorAsString: join(model.narrators),
+          // Legacy frontend expects microseconds; API gives milliseconds.
+          time: (abookFormat.durationInMilliseconds ?? 0) * 1000,
+          description: "",
+        }
+      : null,
+    abookMark: abookFormat?.position
+      ? {
+          pos: (abookFormat.position.position ?? 0) * 1000,
+          ...(typeof abookFormat.position.updatedTime === "string"
+            ? { updatedTime: abookFormat.position.updatedTime }
+            : {}),
+        }
+      : null,
+    ebook: ebookFormat ?? null,
+    isInLibrary: true,
+  };
 }
 
 interface RawCatalogBook {
@@ -433,65 +498,10 @@ class StorytelClient {
       const items = data?.items;
       if (!items || typeof items !== "object") return { books: [] };
 
-      // Library state -> the three states displayed by the desktop client.
-      const stateToStatus: Record<string, number> = {
-        WILL_CONSUME: 1,
-        CONSUMING: 2,
-        CONSUMED: 3,
-      };
-
       const books = Object.values(items)
         .map((entry) => entry?.model)
         .filter(Boolean)
-        .map((model): BookShelfEntity => {
-          const formats: RawBookshelfFormat[] = Array.isArray(model.formats)
-            ? model.formats
-            : [];
-          const abookFormat = formats.find((f) => f.type === "abook");
-          const ebookFormat = formats.find((f) => f.type === "ebook");
-          const coverUrl =
-            abookFormat?.cover?.url ?? ebookFormat?.cover?.url ?? "";
-          const join = (arr?: RawBookshelfNamedEntity[]) =>
-            (Array.isArray(arr) ? arr : [])
-              .map((x) => x?.name)
-              .filter(Boolean)
-              .join(", ");
-          const namedEntities = (arr?: RawBookshelfNamedEntity[]) =>
-            (Array.isArray(arr) ? arr : [])
-              .filter((entry) => Boolean(entry?.name))
-              .map((entry) => ({ id: String(entry.id), name: entry.name.trim() }));
-
-          return {
-            id: model.id,
-            status: stateToStatus[model.state] ?? 1,
-            book: {
-              name: model.title,
-              authorsAsString: join(model.authors),
-              authors: namedEntities(model.authors),
-              series: namedEntities(model.series),
-              consumableId: String(model.id),
-              // Full absolute URL (covers.storytel.com). See note below.
-              largeCover: coverUrl,
-              largeCoverE: "",
-              category: { title: model.category?.name ?? "" },
-              language: { localizedName: "" },
-            },
-            abook: abookFormat
-              ? {
-                  id: abookFormat.id,
-                  narratorAsString: join(model.narrators),
-                  // Legacy frontend expects microseconds; API gives ms.
-                  time: (abookFormat.durationInMilliseconds ?? 0) * 1000,
-                  description: "",
-                }
-              : null,
-            abookMark: abookFormat?.position
-              ? { pos: (abookFormat.position.position ?? 0) * 1000 }
-              : null,
-            ebook: ebookFormat ?? null,
-            isInLibrary: true,
-          };
-        });
+        .map(mapBookshelfModel);
 
       return { books };
     } catch (error: any) {

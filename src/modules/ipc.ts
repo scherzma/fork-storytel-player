@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainEvent, IpcMainInvokeEvent, shell } from 'electron';
+import { app, ipcMain, IpcMainEvent, IpcMainInvokeEvent, shell } from 'electron';
 import path from 'path';
 import { storeManager } from './store';
 import { ServerManager } from './server';
@@ -34,6 +34,7 @@ export class IpcManager {
     this.setupWindowHandlers();
     this.setupLogsHandlers();
     this.setupAuthHandlers();
+    this.setupAppHandlers();
   }
 
   private assertTrustedSender(event: IpcMainInvokeEvent | IpcMainEvent): void {
@@ -94,6 +95,18 @@ export class IpcManager {
       storeManager.remove('token');
     }
     return response;
+  }
+
+  private setupAppHandlers(): void {
+    ipcMain.handle('app:get-version-info', (event: IpcMainInvokeEvent) => {
+      this.assertTrustedSender(event);
+      return {
+        appVersion: app.getVersion(),
+        electronVersion: process.versions.electron ?? '',
+        chromeVersion: process.versions.chrome ?? '',
+        nodeVersion: process.versions.node ?? '',
+      };
+    });
   }
 
   private setupStoreHandlers(): void {

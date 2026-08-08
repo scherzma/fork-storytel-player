@@ -3,6 +3,7 @@ import {BookShelfEntity} from '../interfaces/books';
 import {useAudioPlayer} from '../hooks/useAudioPlayer';
 import {useLiveTranscription} from '../hooks/useLiveTranscription';
 import storage from '../utils/storage';
+import {useBrowseState} from './BrowseStateContext';
 
 const TRANSCRIPTION_LEAD_SECONDS = 8;
 
@@ -24,6 +25,7 @@ interface PlayerContextValue {
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
 export function PlayerProvider({children, enabled = true}: {children: React.ReactNode; enabled?: boolean}) {
+    const {setLibraryBooks} = useBrowseState();
     const [activeBook, setActiveBook] = useState<BookShelfEntity | null>(null);
     const [activeBookId, setActiveBookId] = useState<string | null>(null);
     const [playbackRate, setPlaybackRateState] = useState(1);
@@ -33,12 +35,31 @@ export function PlayerProvider({children, enabled = true}: {children: React.Reac
     const handleLoadError = useCallback((message: string) => setPlayerError(message), []);
     const openExpandedPlayer = useCallback(() => setIsExpanded(true), []);
     const closeExpandedPlayer = useCallback(() => setIsExpanded(false), []);
+    const handlePositionUpdated = useCallback((
+        consumableId: string,
+        positionInMilliseconds: number,
+        updatedAt: string,
+    ) => {
+        setLibraryBooks(current => current.map(book =>
+            String(book.book?.consumableId) === consumableId
+                ? {
+                    ...book,
+                    abookMark: {
+                        ...book.abookMark,
+                        pos: positionInMilliseconds * 1000,
+                        updatedTime: updatedAt,
+                    },
+                }
+                : book,
+        ));
+    }, [setLibraryBooks]);
 
     const audio = useAudioPlayer({
         bookId: activeBookId || undefined,
         consumableId: activeBook?.book?.consumableId || '',
         playbackRate,
         onLoadError: handleLoadError,
+        onPositionUpdated: handlePositionUpdated,
     });
     const transcription = useLiveTranscription({
         audioRef: transcriptionAudioRef,

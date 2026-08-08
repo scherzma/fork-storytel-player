@@ -31,7 +31,8 @@
     "viewList": "Vista a elenco",
     "sortLabel": "Ordina libreria",
     "sort": {
-      "recent": "Aggiunti di recente",
+      "lastListened": "Ultimo ascolto",
+      "recent": "Aggiornati di recente",
       "title": "Titolo",
       "author": "Autore",
       "progress": "Avanzamento"
@@ -305,6 +306,13 @@
     "logout": "Esci",
     "developer": "Sviluppatore",
     "viewLogs": "Visualizza Log di Sessione",
+    "about": "Informazioni",
+    "appVersion": "Versione dell’app",
+    "runtimeVersions": "Versioni di runtime",
+    "electronVersion": "Electron",
+    "chromeVersion": "Chrome",
+    "nodeVersion": "Node.js",
+    "runtimeUnavailable": "I dettagli di runtime sono disponibili nell’app desktop.",
     "language": "Lingua",
     "languageAuto": "Automatico",
     "languageDescription": "Scegli la lingua dell’applicazione",

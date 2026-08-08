@@ -11,6 +11,7 @@ interface InlineReadAlongProps {
     segments: TranscriptSegment[];
     isEnabled: boolean;
     currentTime: number;
+    playbackRate: number;
     onStart: () => void;
     onStop: () => void;
     onSeek: (time: number) => void;
@@ -24,6 +25,7 @@ function InlineReadAlong({
     segments,
     isEnabled,
     currentTime,
+    playbackRate,
     onStart,
     onStop,
     onSeek,
@@ -32,7 +34,27 @@ function InlineReadAlong({
     const {t} = useTranslation();
     const focusedWordRef = useRef<HTMLButtonElement>(null);
     const readerRef = useRef<HTMLDivElement>(null);
+    const wordFadeDelaysRef = useRef(new Map<string, number>());
     const words = segments.flatMap(segment => segment.words);
+
+    const visibleWordIds = new Set(words.map(word => word.id));
+    for (const wordId of wordFadeDelaysRef.current.keys()) {
+        if (!visibleWordIds.has(wordId)) wordFadeDelaysRef.current.delete(wordId);
+    }
+    const unseenWords = words.filter(word => !wordFadeDelaysRef.current.has(word.id));
+    if (unseenWords.length > 0) {
+        // Backfilled history appears quickly; live batches spread out at speech
+        // pace so the reveal flows seamlessly into the next batch's arrival.
+        const isBackfill = wordFadeDelaysRef.current.size === 0;
+        const batchStartTime = unseenWords[0].startTime;
+        const rate = playbackRate > 0 ? playbackRate : 1;
+        unseenWords.forEach((word, index) => {
+            const delay = isBackfill
+                ? Math.min(index * 0.02, 0.5)
+                : Math.min(Math.max((word.startTime - batchStartTime) / rate, 0), 8);
+            wordFadeDelaysRef.current.set(word.id, delay);
+        });
+    }
     const activeWord = [...words].reverse().find(word => word.startTime <= currentTime && currentTime <= word.endTime + 1.5);
     const nextWord = words.find(word => word.startTime > currentTime);
     const focusedWord = activeWord || nextWord;
@@ -58,7 +80,8 @@ function InlineReadAlong({
                 type="button"
                 onClick={() => onSeek(word.startTime)}
                 aria-current={isActive ? 'true' : undefined}
-                className={`rounded-lg px-1.5 py-1 text-left transition duration-300 focus:outline-none focus:ring-2 focus:ring-orange-400/60 ${isActive ? 'scale-[1.04] bg-orange-500/10 font-semibold text-orange-200 drop-shadow-[0_0_14px_rgba(251,146,60,0.35)]' : isPast ? 'text-white/[0.22] hover:text-white/50' : 'text-white/[0.72] hover:bg-white/[0.05] hover:text-white'}`}
+                style={{animationDelay: `${wordFadeDelaysRef.current.get(word.id) ?? 0}s`}}
+                className={`word-fade-in rounded-lg px-1.5 py-1 text-left transition duration-300 focus:outline-none focus:ring-2 focus:ring-orange-400/60 ${isActive ? 'scale-[1.04] bg-orange-500/10 font-semibold text-orange-200 drop-shadow-[0_0_14px_rgba(251,146,60,0.35)]' : isPast ? 'text-white/[0.22] hover:text-white/50' : 'text-white/[0.72] hover:bg-white/[0.05] hover:text-white'}`}
             >
                 {word.text.trim()}
             </button>
@@ -134,11 +157,11 @@ function InlineReadAlong({
                             )}
                         </div>
                     ) : (
-                        <div className="mx-auto max-w-4xl text-center text-[clamp(1rem,1.35vw,1.35rem)] font-medium leading-[1.9] tracking-[-0.01em]" role="region">
+                        <div className="mx-auto max-w-4xl text-left text-[clamp(1rem,1.35vw,1.35rem)] font-medium leading-[1.9] tracking-[-0.01em]" role="region">
                             {segments.map(segment => (
                                 <React.Fragment key={segment.id}>
                                     {segment.words.length > 0 ? segment.words.map(renderWord) : (
-                                        <button type="button" onClick={() => onSeek(segment.startTime)} className="rounded-lg px-1.5 py-1 text-white/65 hover:bg-white/[0.05] hover:text-white">{segment.text}</button>
+                                        <button type="button" onClick={() => onSeek(segment.startTime)} className="word-fade-in rounded-lg px-1.5 py-1 text-white/65 hover:bg-white/[0.05] hover:text-white">{segment.text}</button>
                                     )}{' '}
                                 </React.Fragment>
                             ))}

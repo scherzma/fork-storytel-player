@@ -105,15 +105,30 @@ storytel-player/
 1. **Install dependencies**: `npm run install-all`
 2. **Development mode**: `npm run dev` (runs both client and server with hot reload)
 3. **Electron dev**: `npm run electron:dev`
-4. **Build**: `npm run build` (builds client and server)
-5. **Electron distribution**: `npm run electron:dist` (creates distributable packages)
+4. **Client production build**: `npm run build`
+5. **Server production build**: `npm run server:build`
+6. **Electron TypeScript build**: `npm run electron:build`
+7. **Electron distribution**: `npm run electron:dist` (builds all three layers and creates distributable packages)
 
 ### Testing Strategy
 
-- Manual testing in development mode
-- Test across platforms (Windows, macOS, Linux)
-- Verify i18n translations for all supported languages
-- Test both online and offline modes
+- Run the automated server test suite with `npm test`.
+- Verify the client with `npm run build`; this runs TypeScript before the Vite production build.
+- Verify the server bundle with `npm run server:build`.
+- Verify the Electron main process and preload types with `npm run electron:build`.
+- Run all four checks before creating a stable release tag. The stable release workflow repeats them from locked dependencies before it creates a release draft.
+- Manually test changed user flows in development mode, including relevant online and offline behavior.
+- Verify new user-facing strings in every locale under `server/locales/`.
+- For packaging or platform-specific changes, test the applicable Windows, macOS, or Linux distribution command in addition to the automated checks.
+
+### Release Process
+
+- Stable releases use tags in the exact form `vX.Y.Z`, with no suffix. The tag version must match the root `package.json` version exactly.
+- From a clean working tree, run `npm version X.Y.Z --no-git-tag-version`, review every generated change, run the automated checks above, and commit the release state before creating `vX.Y.Z` on that commit.
+- Push the release commit first, then push its stable tag. `.github/workflows/build.yml` validates the tag, runs the checks, creates or reuses an unpublished stable draft, and builds and uploads Linux x64, Linux arm64, Linux armv7l, macOS x64, macOS arm64, and Windows x64 artifacts.
+- The stable workflow publishes the draft and marks it as the latest release only after every platform build succeeds. If any check or build fails, the release remains a draft and must not be published manually.
+- macOS jobs use Developer ID signing and notarization when all Apple release secrets are configured; otherwise they disable identity discovery and notarization and apply an ad-hoc signature to both architectures.
+- Pre-releases remain separate in `.github/workflows/prerelease.yml` and use a SemVer suffix such as `v1.4.0-beta.1`.
 
 ## Project-Specific Patterns
 
@@ -148,9 +163,10 @@ storytel-player/
 
 ## Git Repository
 
-- **Repository**: https://github.com/debba/storytel-player
-- **Issues**: https://github.com/debba/storytel-player/issues
-- **Releases**: https://github.com/debba/storytel-player/releases
+- **Repository**: https://github.com/scherzma/fork-storytel-player
+- **Issues**: https://github.com/scherzma/fork-storytel-player/issues
+- **Releases**: https://github.com/scherzma/fork-storytel-player/releases
+- **Upstream project**: https://github.com/debba/storytel-player
 
 ## Discord Community
 

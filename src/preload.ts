@@ -57,6 +57,17 @@ interface ApiConfig {
   headers?: Record<string, string>;
 }
 
+interface AppVersionInfo {
+  appVersion: string;
+  electronVersion: string;
+  chromeVersion: string;
+  nodeVersion: string;
+}
+
+contextBridge.exposeInMainWorld('electronApp', {
+  getVersionInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke('app:get-version-info'),
+});
+
 contextBridge.exposeInMainWorld('electronApi', {
   get: (url: string, _: any, config?: ApiConfig): Promise<any> => ipcRenderer.invoke('api:get', url, config),
   post: (url: string, data: any, config?: ApiConfig): Promise<any> =>
