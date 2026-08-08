@@ -241,7 +241,7 @@ jobs:
           require_asset "release-assets/*-mac-arm64.dmg" "macOS arm64"
           require_asset "release-assets/*_amd64.deb" "Linux x64"
           require_asset "release-assets/*_arm64.deb" "Linux arm64"
-          require_asset "release-assets/*_armhf.deb" "Linux armv7l"
+          require_asset "release-assets/*_armv7l.deb" "Linux armv7l"
 
           (
             cd release-assets
